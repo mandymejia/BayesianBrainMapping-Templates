@@ -63,11 +63,6 @@ estimate_and_export_template <- function(
         # Save file
         saveRDS(template, file.path(dir_slate, sprintf("template_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
 
-        export_template(
-            x = template,
-            out_fname = file.path(dir_slate, sprintf("template_%s_yeo17_GSR%s", encoding, ifelse(GSR, "T", "F")))
-        )
-
     } else {
         # HCP IC
         GICA <- file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC))
