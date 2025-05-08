@@ -27,7 +27,9 @@ dir_slate <- "/N/project/brain_prediction"
 dir_personal <- "/N/u/ndasilv/Quartz"
 dir_data <- file.path(dir_project, "data")
 HCP_unrestricted_fname <- file.path(dir_project, "data", "unrestricted_HCP_demographics.csv")
-HCP_restricted_fname <- "/N/u/ndasilv/Quartz/Downloads/RESTRICTED_noheliadasilva_4_25_2025_8_33_58.csv"
+#HCP_restricted_fname <- "/N/u/ndasilv/Quartz/Downloads/RESTRICTED_noheliadasilva_4_25_2025_8_33_58.csv"
+# locally
+HCP_restricted_fname <- "/Users/nohelia/documents/StatMIND/Data/RESTRICTED_noheliadasilva_4_25_2025_8_33_58.csv"
 subjects_HCP_fname <- file.path(dir_data, "HCP_subjects_balanced.rds")
 HCP_FD_fname <- file.path(dir_data, "HCP_FD.rds")
 

@@ -3,6 +3,9 @@ title: "BayesianBrainMapping-Templates"
 author: "authors"
 date: "2025-05-07"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -22,89 +25,109 @@ To reproduce this workflow, first clone the repository to your local machine or 
 # cd BayesianBrainMapping-Templates
 ```
 
-This section initializes the environment by loading required packages, setting analysis parameters, and defining directory paths.  
+This section initializes the environment by loading required packages, setting analysis parameters, and defining directory paths.
 
 **Important:** Before running the workflow, you must update the following variables in `0_setup.R` to match your local or cluster environment:
 
-- `dir_project`, `dir_data`, `dir_slate`, `dir_personal`
+-   `dir_project`, `dir_data`, `dir_slate`, `dir_personal`
 
-- `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
+-   `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
 
-- `wb_path` (location of the CIFTI Workbench on your system)
+-   `wb_path` (location of the CIFTI Workbench on your system)
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 github_repo_dir <- getwd()
 src_dir <- file.path(github_repo_dir, "src")
-# source(file.path(src_dir, "0_setup.R"))
+source(file.path(src_dir, "0_setup.R"))
 ```
 
 ## 3. Filtering Subjects
 
-Before estimating group-level templates, we apply a set of filtering steps to select a high-quality subject sample. These steps 
-ensure that the final templates are based on reliable, representative data. The filtering includes:
+Before estimating group-level templates, we apply a set of filtering steps to select a high-quality subject sample.
+These steps ensure that the final templates are based on reliable, representative data.
+The filtering steps include:
 
-### 3.1 Filter Subjects by Valid fMRI Time 
+### 3.1 Filter Subjects by Valid fMRI Time
 
-We begin by filtering subjects based on the duration of valid fMRI data after motion correction. For each subject, and for each session (`REST1`, `REST2`)
-and encoding direction (`LR`, `RL`), we compute framewise displacement (FD) using the `fMRIscrub` package.
+We begin by filtering subjects based on the duration of valid fMRI data after motion correction.
+For each subject, and for each session (`REST1`, `REST2`) and encoding direction (`LR`, `RL`), we compute Framewise Displacement (FD) using the `fMRIscrub` package.
+FD is calculated from the `Movement_Regressors.txt` file available in the HCP data for each subject, encoding and session.
 
-A volume is considered valid if it passes an FD threshold, and a subject is retained for a given encoding only if both sessions have:
+A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data.
 
-- At least 10 minutes of valid data
-
-- Note: we do not enforce a mean FD threshold in this step
-
-Three filtered subject lists are generated:
-
-- One for encoding `LR`
-
-- One for encoding `RL`
-
-- One with subjects that passed both (`combined`)
-
-TODO: are we using the combined subjects for all analysis?
-
-TODO: should we display the final number of users for each list? here and in every step?
+The final subject list includes only those who passed the filtering criteria in both LR and RL encodings.
+This list is referred to as the `combined` list and is the one used throughout this project.
 
 ```{r}
-#source("1_fd_time_filtering.R")
+# source(file.path(src_dir,"1_fd_time_filtering.R"))
 ```
+
+During this step, an FD summary table is generated with the following columns:
+
+-   subject: HCP subject ID
+
+-   session: REST1 or REST2
+
+-   encoding: LR or RL
+
+-   mean_fd: mean framewise displacement
+
+-   valid_time_sec: total duration of valid data in seconds
+
+#### Preview of FD Summary Table
+
+```{r}
+# Read FD summary
+fd_summary <- read.csv("~/Documents/StatMIND/Data/fd_summary.csv")
+
+# Display the first 4 rows
+knitr::kable(head(fd_summary, 4), caption = "First rows of FD summary table")
+```
+
+As shown above, subject 100206 qualifies for further analysis because each of the four sessions (REST1/REST2 × LR/RL) contains at least 600 seconds of valid data.
+
+The script is currently designed to filter based on valid time only, but it can be easily adapted to apply additional constraints such as maximum mean FD thresholds if desired (e.g., mean_fd \< 0.2).
 
 ### 3.2 Filter Unrelated Subjects
 
-Building on the previous step, we use the HCP restricted dataset to filter out related individuals. 
+Building on the previous step, we use the HCP restricted dataset to filter out related individuals.
 This step helps ensure the statistical independence of subjects in the group-level template estimation.
 
-For each list of valid subjects (`LR`, `RL`, `combined`) derived in the previous step, we
+For the `combined` list of valid subjects derived in the previous step, we:
 
-- Subset the HCP restricted demographics to include only those subjects.
+-   Subset the HCP restricted demographics to include only those subjects.
 
-- Filter by `Family_ID` to retain a single individual per family.
+-   Filter by `Family_ID` to retain a single individual per family.
 
-Note: This step requires access to the HCP restricted data. If you do not have access, you can skip this step.
+Note: This step requires access to the HCP restricted data.
+If you do not have access, you can skip this step.
 
 ```{r}
-#source("2_unrelated_filtering.R")
+#source(file.path(src_dir,"2_unrelated_filtering.R"))
 ```
 
 ### 3.3 Filter Subjects to Balance Sex Within Age Groups
 
 In the final step of the subject filtering pipeline, we balance sex across age groups to reduce potential demographic bias in template estimation.
 
-For each list of valid and unrelated subjects (`LR`, `RL`, and `combined`), we:
+For the `combined` list of valid and unrelated subjects, we:
 
-- Subset the HCP unrestricted demographics to include only those subjects.
+-   Subset the HCP unrestricted demographics to include only those subjects.
 
-- Split subjects by age group and examine the sex distribution within each group.
+-   Split subjects by age group and examine the sex distribution within each group.
 
-- If both sexes are present but imbalanced, we randomly remove subjects from the overrepresented group to achieve balance.
+-   If both sexes are present but imbalanced, we randomly remove subjects from the overrepresented group to achieve balance.
 
-Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_*_subjects_FD` instead of `valid_*_subjects_unrelated`.
+Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_combined_subjects_FD` instead of `valid_combined_subjects_unrelated`.
 
-The final lists of balanced subjects are saved as both `.csv` and `.rds` files, and the latter will be used in the template estimation step.
+The final list of valid subjects is saved as:
+
+-   `valid_combined_subjects_balanced.csv`
+
+-   `valid_combined_subjects_balanced.rds` (used in the template estimation step)
 
 ```{r}
-#source("3_balance_age_sex.R")
+#source(file.path(src_dir,"3_balance_age_sex.R"))
 ```
 
 ## 4. Prepare Group-Level Parcellations
@@ -112,121 +135,273 @@ The final lists of balanced subjects are saved as both `.csv` and `.rds` files, 
 In this step, we load and preprocess a group-level cortical parcellation to be used to estimate template in the next step.
 Specifically, we use the Yeo 17-network parcellation (`Yeo_17`) and perform the following operations:
 
-- Simplify the labels by collapsing hemisphere-specific naming and removing subnetwork identifiers, 
-grouping regions by their main network.
+-   Simplify the labels by collapsing hemisphere-specific naming and removing subnetwork identifiers, grouping regions by their main network.
 
-- Create a new `dlabel` object that maps each vertex to its corresponding network.
+-   Create a new `dlabel` object that maps each vertex to its corresponding network.
 
-- Mask out the medial wall to exclude non-cortical regions from analysis.
+-   Mask out the medial wall to exclude non-cortical regions from analysis.
 
 The resulting parcellation is saved as `Yeo17_simplified_mwall.rds`.
 
-TODO: visualize yeo17 labels and image
+```{r}
+# source(file.path(src_dir,"4_parcellations.R"))
+```
+
+We can visualize the Yeo17 networks and their corresponding labels:
 
 ```{r}
-#source("4_parcellations.R")
+# Load libraries
+library(ciftiTools)
+library(rgl)
+rgl::setupKnitr()
+
+# Load the parcellation
+yeo17 <- readRDS(file.path(dir_data, "Yeo17_simplified_mwall.rds"))
+yeo17 <- add_surf(yeo17)
+
+view_xifti_surface(
+  xifti = yeo17,
+  widget = TRUE,
+  title = "Yeo17 Network Parcellation",
+  legend_ncol = 6,
+  legend_fname = "yeo17_legend.png",
+)
+
+```
+
+```{r}
+# Show legend
+knitr::include_graphics("yeo17_legend.png")
 ```
 
 ## 5. Estimate Templates
 
-In this step, we estimate group-level statistical templates using the `estimate_template()` function from the `templateICAr` package.  
+In this step, we estimate group-level statistical templates using the `estimate_template()` function from the `templateICAr` package.
 
 The helper function `estimate_and_export_template()` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
 
-The `encoding` parameter refers to which subject list and BOLD runs to use:
+The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions, were unrelated, and were sex-balanced within age groups.
 
-- `"LR"` and `"RL"` use subjects from the corresponding `valid_*_subjects_balanced.rds` files, and use both REST1 and REST2 sessions from that same encoding.
+For these subjects, we include REST1 sessions only, but from both encodings:
 
-- `"combined"` uses subjects who passed both LR and RL filtering, and uses only the REST1 session, but from both encodings:  
-  `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii` and `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`.
+- `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+- `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
 The `nIC` parameter determines which parcellation is used:
 
-- If `nIC = 15`, `25`, or `50`, the corresponding HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.) is used from the `data/` folder.
-These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
+-   If `nIC = 15`, `25`, or `50`, the corresponding HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.) is used from the `data/` folder. These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
 
-Templates are saved as `.rds` files. For GICA-based runs, additional outputs are exported using `export_template()`.
+Templates are saved as `.rds` files.
+For GICA-based runs, additional outputs are exported using `export_template()`.
 
-For this project, we focus on the `"combined"` subject list only. This list includes subjects who passed all filtering steps for both LR and RL acquisitions. 
 In total, we estimate 8 templates varying the parcellation type and GSR inclusion:
 
-- GICA parcellation with 15 components: GSR = TRUE / FALSE 
+-   GICA parcellation with 15 components: GSR = TRUE / FALSE
 
-- GICA parcellation with 25 components: GSR = TRUE / FALSE  
+-   GICA parcellation with 25 components: GSR = TRUE / FALSE
 
-- GICA parcellation with 50 components: GSR = TRUE / FALSE 
+-   GICA parcellation with 50 components: GSR = TRUE / FALSE
 
-- Yeo 17-network parcellation: GSR = TRUE / FALSE
+-   Yeo 17-network parcellation: GSR = TRUE / FALSE
 
 ```{r}
 # Load function
 # source("5_estimate_template.R")
 ```
 
-## 5.1 Example Run on 2 subjects 
+## 5.1 Example Run on 2 subjects
 
-Running `estimate_template()` on the full `"combined"` subject list (348 subjects) takes approximately 27 hours and uses 135 GB of memory. 
+Running `estimate_template()` on the full `"combined"` subject list (~350 subjects) takes approximately 27 hours and uses 135 GB of memory.
 These templates were estimated on Quartz, a high-performance computing cluster.
 
 To illustrate the process, we demonstrate a minimal example using 2 subjects, with:
 
-- The GICA 15-component parcellation
+-   The GICA 15-component parcellation
 
-- GSR = TRUE
+-   GSR = TRUE
 
-- REST1 session from both LR and RL encodings
+-   REST1 session from both LR and RL encodings
 
-```{r}
-test_subjects <- c("100307", "100206")
-
-## todo: add data to folder in github (demo?)
-#BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-
-#BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-
-#GICA <- readRDS(file.path(dir_data, "GICA_15IC.dscalar.nii"))
-
-#template <- estimate_template(
- #   BOLD = BOLD_paths1,
-  #  BOLD2 = BOLD_paths2,
-   # GSR=TRUE,
-    #TR = 0.72,
-    #hpf = 0.01,
-    #Q2 = 0,
-    #Q2_max = NULL,
-    #verbose=TRUE,
-   # GICA=GICA
-  #)
-
+```{r warning=FALSE}
+# test_subjects <- c("100307", "100206")
+# 
+# BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+# 
+# BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+# 
+# GICA <- read_cifti(file.path(dir_data, "GICA_15IC.dscalar.nii"))
+# 
+# template <- estimate_template(
+#     BOLD = BOLD_paths1,
+#     BOLD2 = BOLD_paths2,
+#     GSR=TRUE,
+#     TR = 0.72,
+#     hpf = 0.01,
+#     Q2 = 0,
+#     Q2_max = NULL,
+#     verbose=TRUE,
+#     GICA=GICA
+#   )
 ```
 
-Note: This example is for demonstration purpose only. 
+Note: This example is for demonstration purpose only.
 Estimating templates with so few subjects may produce unstable results, but it is useful for visualization, debugging, and understanding the pipeline.
 
 ## 6. Visualization
 
-### 6.1 Visualize Template ICA Components
+In this section, we visualize both the parcellation maps and the template outputs (mean and variance) for each parcellation scheme used in the study: Yeo17, 15 IC, 25 IC, and 50 IC.
+We also visualize their corresponding functional connectivity (FC) templates.
 
-```{r}
-### actually only obe example, this plots everything
-#source("6_visualization.R")
+### 6.1 Generate and Save Parcellation Visualizations
+
+#### 6.1.1 Yeo17 parcellation
+
+Script: `8_visualization_Yeo17parcellations.R`
+
+This script creates one PNG image per parcel (17 in total), where only the selected parcel is colored and all others are white.
+The parcellation used is `Yeo17_simplified_mwall.rds`, created in Step 4.
+
+Images are saved in `data/parcellations_plots/Yeo17`.
+
+#### 6.1.2 GICA Parcellations (15, 25, 50 ICs)
+
+Script: `9_visualization_GICAparcellations.R`
+
+This script defines a helper function that loops over all independent components for each parcellation dimensionality (`nIC = 15, 25, 50`) and generates two images per component:
+
+-   A cortical surface map (e.g., `GICA_15_IC1.png`)
+
+-   A subcortical view (e.g., `GICA_15_IC1_sub.png`)
+
+The resulting images are saved in the following folders:
+
+-   `data/parcellations_plots/15IC/`
+
+-   `data/parcellations_plots/25IC/`
+
+-   `data/parcellations_plots/50IC/`
+
+Each pair of files corresponds to a specific ICA component and captures its spatial map across brain regions.
+
+### 6.2 Visualize Template ICA Components
+
+Script: `6_visualization_template.R`
+
+TODO: where to upload the template_rds (too big for github)
+
+This script loads each estimated template file from `template_rds/` and plots both the mean and standard deviation components for all independent components (ICs).
+
+For each parcellation type, we display:
+
+-   The first and last parcellation map
+
+-   The first and last mean map
+
+-   The first and last SD map
+
+All images are organized into folders by number of ICs and GSR setting, e.g.:
+
+```         
+data/templates/15IC/GSR=F/
+
+data/templates/25IC/GSR=T/
+
+data/templates/50IC/GSR=F/
+
+data/templates/yeo17/GSR=T/
 ```
 
-### 6.2 Visualize Template Functional Connectivity
+These visualizations provide a detailed look at the spatial distribution and variability of each ICA component across the brain.
 
-```{r}
-### actually only obe example, this plots everything
-#source("7_visualization_FC.R")
+### 6.3 Visual Summary of Templates
+
+In this section, we present a comparative visual summary of the estimated group-level templates.
+
+For each parcellation type Yeo17, 15 ICs, 25 ICs, and 50 IC, we display:
+
+-   First and Last Parcellation Map
+
+-   First and Last Component Mean
+
+-   First and Last Component Standard Deviation
+
+These summaries are shown in a 2-column grid layout per parcellation to highlight spatial structure and variability.
+
+All images were generated using the scripts:
+
+-   `8_visualization_Yeo17parcellations.R`
+
+-   `9_visualization_GICAparcellations.R`
+
+-   `6_visualization_template.R`
+
+#### 6.3.1 15 ICs
+
+For the 15 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 15):
+
+TODO: dont do plot but add image instead? regenerate them with titles
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC1.png"))
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC15.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_mean_IC 1.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_mean_IC 15.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_sd_IC 1.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_sd_IC 15.png"))
 ```
+
+#### 6.3.2 25 ICs
+
+For the 25 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 25):
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC1.png"))
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC25.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_mean_IC 1.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_mean_IC 25.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_sd_IC 1.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_sd_IC 25.png"))
+```
+
+#### 6.3.3 50 ICs
+
+For the 50 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 50):
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC1.png"))
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC50.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_mean_IC 1.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_mean_IC 50.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_sd_IC 1.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_sd_IC 50.png"))
+```
+
+#### 6.3.4 Yeo17
+
+For the Yeo17 parcellation, we show visualizations of the two main networks (`DefaultA` and `DorsAttnA`):
+
+TODO: ADD NAMES TO PARCELLATION PLOTS NO NUMBERS (ALSO LOWER CASE)
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_parc_14.png"))
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_parc_5.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_mean_DefaultA.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_mean_DorsAttnA.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_sd_DefaultA.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_sd_DorsAttnA.png"))
+```
+
+### 6.4 Visualize Template Functional Connectivity
 
 ## 7. Group-Level Analysis
 
-example on how to use the templates
-
-
-
-
-
-
-
-
+example on how to use the templates TEMAPLATE ICA VISUALIZATION
