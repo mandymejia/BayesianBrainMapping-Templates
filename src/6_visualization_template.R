@@ -1,8 +1,9 @@
 template_files <- list.files(
-    path ="~/Documents/StatMIND/Data/template_rds", 
+    path = file.path(dir_data, "template_rds"),
     pattern = "^template_.*\\.rds$", 
     full.names = TRUE
     )
+
 
 for (file in template_files) {
     template <- readRDS(file)

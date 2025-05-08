@@ -390,8 +390,8 @@ For the Yeo17 parcellation, we show visualizations of the two main networks (`De
 TODO: ADD NAMES TO PARCELLATION PLOTS NO NUMBERS (ALSO LOWER CASE)
 
 ```{r fig.show='hold', out.width='48%'}
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_parc_14.png"))
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_parc_5.png"))
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
+knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DorsAttnA.png"))
 
 knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_mean_DefaultA.png"))
 knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_mean_DorsAttnA.png"))
@@ -402,6 +402,102 @@ knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17
 
 ### 6.4 Visualize Template Functional Connectivity
 
-## 7. Group-Level Analysis
+Script: `7_visualization_FC.R`
+
+This step visualizes the Functional Connectivity (FC) template for each ICA model using both the Cholesky and Inverse-Wishart parameterizations. For each group-level template in `template_rds/`, we compute and plot:
+
+- Mean FC matrix (off-diagonal values only)
+
+- Standard deviation of FC estimates (from the variance matrix)
+
+For each template, the following outputs are saved in the `data/template_plots/combined/FC` folder:
+
+#### PDF files (2 per template)
+
+- `[template_name]_FC_Cholesky.pdf`
+
+- `[template_name]_FC_InverseWishart.pdf`
+
+Each PDF includes:
+
+- FC Template Mean (Page 1)
+
+- FC Template Standard Deviation (Page 2)
+
+#### PNG imgaes (4 per template)
+
+- `[template_name]_FC_Cholesky_mean.png`
+
+- `[template_name]_FC_Cholesky_sd.png`
+
+- `[template_name]_FC_InverseWishart_mean.png`
+
+- `[template_name]_FC_InverseWishart_sd.png`
+
+These visualizations allow for a direct comparison of spatial FC structure and uncertainty across templates and estimation methods.
+
+#### 6.4.1 15 ICs
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_InverseWishart_sd.png"))
+```
+
+#### 6.4.2 25 ICs
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_InverseWishart_sd.png"))
+```
+
+#### 6.4.3 50 ICs
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_InverseWishart_sd.png"))
+```
+
+#### 6.4.4 Yeo17
+
+```{r fig.show='hold', out.width='48%'}
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
+```
+
+## 7. Group-Level Analysis (individual?)
 
 example on how to use the templates TEMAPLATE ICA VISUALIZATION
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
