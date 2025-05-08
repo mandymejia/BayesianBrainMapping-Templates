@@ -13,4 +13,4 @@ plot_all_GICA_components <- function(nIC) {
 # Call function for 15, 25, and 50 IC
 plot_all_GICA_components(15)
 plot_all_GICA_components(25)
-plot_all_GICA_components(50)
+plot_all_GICA_components(50)å
