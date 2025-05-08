@@ -8,6 +8,7 @@ for (subject in subject_ids) {
         session_pass <- c()
 
         for (session in c("REST1", "REST2")) {
+            # TODO: add dir_HCP
             path <- sprintf("/N/project/hcp_dcwan/%s/MNINonLinear/Results/rfMRI_%s_%s/Movement_Regressors.txt", subject, session, encoding)
 
             # If file does not exist automatically false

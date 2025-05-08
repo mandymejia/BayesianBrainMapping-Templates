@@ -1,5 +1,10 @@
 # Setup
 
+# Download packages
+# TODO: add download packages if not donwloaded already 
+# install.packages(...)
+# devtools::install_github("mandymejia/fMRIscrub", "14.0") 
+
 # Load packages
 library(ciftiTools)
 library(templateICAr)
@@ -8,22 +13,21 @@ library(fMRItools)
 library(viridis)
 
 # Set CIFTI Workbench path
-wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
+# wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
 # locally
-# wb_path <- "~/Downloads/workbench"
+wb_path <- "~/Downloads/workbench"
 ciftiTools.setOption("wb_path", wb_path) 
 
 # Set up paths
-dir_project <- "/N/u/ndasilv/Quartz/Documents/GitHub/Brain-prediction-paper"
+# dir_project <- "/N/u/ndasilv/Quartz/Documents/GitHub/BayesianBrainMapping-Templates"
 # locally
-# dir_project <- "~/Documents/StatMIND/Brain-prediction-paper"
+dir_project <- "~/Documents/StatMIND/BayesianBrainMapping-Templates"
 dir_HCP <- "/N/project/hcp_dcwan"
 dir_slate <- "/N/project/brain_prediction"
 dir_personal <- "/N/u/ndasilv/Quartz"
 dir_data <- file.path(dir_project, "data")
 HCP_unrestricted_fname <- file.path(dir_project, "data", "unrestricted_HCP_demographics.csv")
 HCP_restricted_fname <- "/N/u/ndasilv/Quartz/Downloads/RESTRICTED_noheliadasilva_4_25_2025_8_33_58.csv"
-dir_data <- file.path(dir_project, "data")
 subjects_HCP_fname <- file.path(dir_data, "HCP_subjects_balanced.rds")
 HCP_FD_fname <- file.path(dir_data, "HCP_FD.rds")
 

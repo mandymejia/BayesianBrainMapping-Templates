@@ -3,6 +3,8 @@
 
 for (encoding in c("LR", "RL", "combined")) {
     # From unrestricted data get only the rows that correspond to the valid subject IDs after FD correction and unrelated filtering
+
+    # TODO: provide line of code that will skip 2nd step (unrelated filter)?
     filtered_unrestricted <- HCP_unrestricted[HCP_unrestricted$Subject %in% get(sprintf("valid_%s_subjects_unrelated", encoding)), ]
 
     filtered_unrestricted$Age <- as.factor(filtered_unrestricted$Age)

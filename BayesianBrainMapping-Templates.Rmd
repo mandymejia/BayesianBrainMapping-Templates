@@ -1,0 +1,232 @@
+---
+title: "BayesianBrainMapping-Templates"
+author: "authors"
+date: "2025-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Introduction
+
+...
+
+## 2. Setup
+
+To reproduce this workflow, first clone the repository to your local machine or cluster:
+
+```{r}
+# git clone https://github.com/mandymejia/BayesianBrainMapping-Templates.git
+# cd BayesianBrainMapping-Templates
+```
+
+This section initializes the environment by loading required packages, setting analysis parameters, and defining directory paths.  
+
+**Important:** Before running the workflow, you must update the following variables in `0_setup.R` to match your local or cluster environment:
+
+- `dir_project`, `dir_data`, `dir_slate`, `dir_personal`
+
+- `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
+
+- `wb_path` (location of the CIFTI Workbench on your system)
+
+```{r}
+github_repo_dir <- getwd()
+src_dir <- file.path(github_repo_dir, "src")
+# source(file.path(src_dir, "0_setup.R"))
+```
+
+## 3. Filtering Subjects
+
+Before estimating group-level templates, we apply a set of filtering steps to select a high-quality subject sample. These steps 
+ensure that the final templates are based on reliable, representative data. The filtering includes:
+
+### 3.1 Filter Subjects by Valid fMRI Time 
+
+We begin by filtering subjects based on the duration of valid fMRI data after motion correction. For each subject, and for each session (`REST1`, `REST2`)
+and encoding direction (`LR`, `RL`), we compute framewise displacement (FD) using the `fMRIscrub` package.
+
+A volume is considered valid if it passes an FD threshold, and a subject is retained for a given encoding only if both sessions have:
+
+- At least 10 minutes of valid data
+
+- Note: we do not enforce a mean FD threshold in this step
+
+Three filtered subject lists are generated:
+
+- One for encoding `LR`
+
+- One for encoding `RL`
+
+- One with subjects that passed both (`combined`)
+
+TODO: are we using the combined subjects for all analysis?
+
+TODO: should we display the final number of users for each list? here and in every step?
+
+```{r}
+#source("1_fd_time_filtering.R")
+```
+
+### 3.2 Filter Unrelated Subjects
+
+Building on the previous step, we use the HCP restricted dataset to filter out related individuals. 
+This step helps ensure the statistical independence of subjects in the group-level template estimation.
+
+For each list of valid subjects (`LR`, `RL`, `combined`) derived in the previous step, we
+
+- Subset the HCP restricted demographics to include only those subjects.
+
+- Filter by `Family_ID` to retain a single individual per family.
+
+Note: This step requires access to the HCP restricted data. If you do not have access, you can skip this step.
+
+```{r}
+#source("2_unrelated_filtering.R")
+```
+
+### 3.3 Filter Subjects to Balance Sex Within Age Groups
+
+In the final step of the subject filtering pipeline, we balance sex across age groups to reduce potential demographic bias in template estimation.
+
+For each list of valid and unrelated subjects (`LR`, `RL`, and `combined`), we:
+
+- Subset the HCP unrestricted demographics to include only those subjects.
+
+- Split subjects by age group and examine the sex distribution within each group.
+
+- If both sexes are present but imbalanced, we randomly remove subjects from the overrepresented group to achieve balance.
+
+Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_*_subjects_FD` instead of `valid_*_subjects_unrelated`.
+
+The final lists of balanced subjects are saved as both `.csv` and `.rds` files, and the latter will be used in the template estimation step.
+
+```{r}
+#source("3_balance_age_sex.R")
+```
+
+## 4. Prepare Group-Level Parcellations
+
+In this step, we load and preprocess a group-level cortical parcellation to be used to estimate template in the next step.
+Specifically, we use the Yeo 17-network parcellation (`Yeo_17`) and perform the following operations:
+
+- Simplify the labels by collapsing hemisphere-specific naming and removing subnetwork identifiers, 
+grouping regions by their main network.
+
+- Create a new `dlabel` object that maps each vertex to its corresponding network.
+
+- Mask out the medial wall to exclude non-cortical regions from analysis.
+
+The resulting parcellation is saved as `Yeo17_simplified_mwall.rds`.
+
+TODO: visualize yeo17 labels and image
+
+```{r}
+#source("4_parcellations.R")
+```
+
+## 5. Estimate Templates
+
+In this step, we estimate group-level statistical templates using the `estimate_template()` function from the `templateICAr` package.  
+
+The helper function `estimate_and_export_template()` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
+
+The `encoding` parameter refers to which subject list and BOLD runs to use:
+
+- `"LR"` and `"RL"` use subjects from the corresponding `valid_*_subjects_balanced.rds` files, and use both REST1 and REST2 sessions from that same encoding.
+
+- `"combined"` uses subjects who passed both LR and RL filtering, and uses only the REST1 session, but from both encodings:  
+  `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii` and `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`.
+
+The `nIC` parameter determines which parcellation is used:
+
+- If `nIC = 15`, `25`, or `50`, the corresponding HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.) is used from the `data/` folder.
+These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
+
+Templates are saved as `.rds` files. For GICA-based runs, additional outputs are exported using `export_template()`.
+
+For this project, we focus on the `"combined"` subject list only. This list includes subjects who passed all filtering steps for both LR and RL acquisitions. 
+In total, we estimate 8 templates varying the parcellation type and GSR inclusion:
+
+- GICA parcellation with 15 components: GSR = TRUE / FALSE 
+
+- GICA parcellation with 25 components: GSR = TRUE / FALSE  
+
+- GICA parcellation with 50 components: GSR = TRUE / FALSE 
+
+- Yeo 17-network parcellation: GSR = TRUE / FALSE
+
+```{r}
+# Load function
+# source("5_estimate_template.R")
+```
+
+## 5.1 Example Run on 2 subjects 
+
+Running `estimate_template()` on the full `"combined"` subject list (348 subjects) takes approximately 27 hours and uses 135 GB of memory. 
+These templates were estimated on Quartz, a high-performance computing cluster.
+
+To illustrate the process, we demonstrate a minimal example using 2 subjects, with:
+
+- The GICA 15-component parcellation
+
+- GSR = TRUE
+
+- REST1 session from both LR and RL encodings
+
+```{r}
+test_subjects <- c("100307", "100206")
+
+## todo: add data to folder in github (demo?)
+#BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+
+#BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+
+#GICA <- readRDS(file.path(dir_data, "GICA_15IC.dscalar.nii"))
+
+#template <- estimate_template(
+ #   BOLD = BOLD_paths1,
+  #  BOLD2 = BOLD_paths2,
+   # GSR=TRUE,
+    #TR = 0.72,
+    #hpf = 0.01,
+    #Q2 = 0,
+    #Q2_max = NULL,
+    #verbose=TRUE,
+   # GICA=GICA
+  #)
+
+```
+
+Note: This example is for demonstration purpose only. 
+Estimating templates with so few subjects may produce unstable results, but it is useful for visualization, debugging, and understanding the pipeline.
+
+## 6. Visualization
+
+### 6.1 Visualize Template ICA Components
+
+```{r}
+### actually only obe example, this plots everything
+#source("6_visualization.R")
+```
+
+### 6.2 Visualize Template Functional Connectivity
+
+```{r}
+### actually only obe example, this plots everything
+#source("7_visualization_FC.R")
+```
+
+## 7. Group-Level Analysis
+
+example on how to use the templates
+
+
+
+
+
+
+
+
