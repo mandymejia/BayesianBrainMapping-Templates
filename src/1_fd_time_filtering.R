@@ -9,6 +9,7 @@ for (subject in subject_ids) {
 
         for (session in c("REST1", "REST2")) {
             # TODO: add dir_HCP
+            #[Nohelia] add dir_HCP here
             path <- sprintf("/N/project/hcp_dcwan/%s/MNINonLinear/Results/rfMRI_%s_%s/Movement_Regressors.txt", subject, session, encoding)
 
             # If file does not exist automatically false
@@ -20,6 +21,7 @@ for (subject in subject_ids) {
             X <- as.matrix(read.table(path))
 
             # fMRIscrub dev branch 14.0 needed as of now to have the resp filter option
+            # [Nohelia] please confirm with Damon if this is now the main branch.  And please comment the version number required when the library is loaded.
             fd <- FD(X=X[,1:6], lag=fd_lag_HCP, cutoff=fd_cutoff, TR_for_resp_filt=tr_resp_HCP)
 
             mean_fd <- mean(fd$measure, na.rm = TRUE)
@@ -53,6 +55,7 @@ for (subject in subject_ids) {
     }
 }
 
+# Which subjects have valid LR and RL data?
 valid_combined_subjects_FD <- intersect(valid_LR_subjects_FD, valid_RL_subjects_FD)
 
 # Save intermediate data in Slate
