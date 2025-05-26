@@ -46,7 +46,6 @@ fd_cutoff <- .5 # Motion scrubbing threshold
 TR_HCP <- .72 # Repetition time 
 nT_HCP <- 1200 # Timepoints for each resting state scan
 min_total_sec <- 600 # Minimum duration of time series after scrubbing (600 sec = 10 min)
-tr_resp_HCP <- .72 # [Nohelia -- do we need this to be a separate var from TR_HCP?]
 
 # Declare empty lists 
 valid_LR_subjects_FD <- c()

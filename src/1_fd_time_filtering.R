@@ -8,9 +8,8 @@ for (subject in subject_ids) {
         session_pass <- c()
 
         for (session in c("REST1", "REST2")) {
-            # TODO: add dir_HCP
-            #[Nohelia] add dir_HCP here
-            path <- sprintf("/N/project/hcp_dcwan/%s/MNINonLinear/Results/rfMRI_%s_%s/Movement_Regressors.txt", subject, session, encoding)
+            
+            path <- sprintf("%s/%s/MNINonLinear/Results/rfMRI_%s_%s/Movement_Regressors.txt", dir_HCP, subject, session, encoding)
 
             # If file does not exist automatically false
             if (!file.exists(path)) {
@@ -21,7 +20,7 @@ for (subject in subject_ids) {
             X <- as.matrix(read.table(path))
 
             # fMRIscrub dev branch 14.0 needed as of now to have the resp filter option
-            # [Nohelia] please confirm with Damon if this is now the main branch.  And please comment the version number required when the library is loaded.
+            # [Nohelia] please confirm with Damon if this is now the main branch.  And please comment the version number required when the library is loaded. -> asked waiting 
             fd <- FD(X=X[,1:6], lag=fd_lag_HCP, cutoff=fd_cutoff, TR_for_resp_filt=TR_HCP)
 
             mean_fd <- mean(fd$measure, na.rm = TRUE)

@@ -5,7 +5,7 @@ y <- rownames(yeo17$meta$cifti$labels[[1]])
 z <- gsub('17Networks_LH_|17Networks_RH_', '', y)
 z <- gsub('_.*', '', z)
 z <- factor(z, levels=z[!duplicated(z)])
-# parcellation with new labels
+# Parcellation with new labels
 yeo17_simplify <- convert_to_dlabel(
   newdata_xifti(yeo17, as.numeric(z)[c(as.matrix(yeo17)) + 1]),
   levels_old = as.numeric(z)[!duplicated(z)],
@@ -25,7 +25,7 @@ yeo17_simplify$meta$cifti$labels[[1]] <- rbind(
   data.frame(Key=-1, Red=1, Green=1, Blue=1, Alpha=0, row.names='BOLD_mwall'),
   yeo17_simplify$meta$cifti$labels[[1]]
 )
-# medial wall mask
+# Medial wall mask
 mwall_path <- file.path(dir_data, "Human.MedialWall_Conte69.32k_fs_LR.dlabel.nii")
 mwall_cifti <- read_cifti(mwall_path)
 mwall_L <- mwall_cifti$data$cortex_left == 0
