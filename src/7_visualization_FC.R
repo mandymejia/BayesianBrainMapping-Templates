@@ -50,13 +50,13 @@ for (file in template_files) {
     dev.off()
 
     # Save as png (2 images)
-    # png(file.path(dir_data, paste0(base_name, "_FC_Cholesky_mean.png")), height = 550, width = 600)
-    # plot_FC(template_FC_mean_Cholesky, zlim = zlim_FC, title = paste0(plot_title, "\nCholesky FC Template Mean"))
-    # dev.off()
+    png(file.path(dir_data, paste0(base_name, "_FC_Cholesky_mean.png")), height = 550, width = 600)
+    plot_FC(template_FC_mean_Cholesky, zlim = zlim_FC, title = paste0(plot_title, "\nCholesky FC Template Mean"))
+    dev.off()
 
-    # png(file.path(dir_data, paste0(base_name, "_FC_Cholesky_sd.png")), height = 550, width = 600)
-    # plot_FC(sqrt(template_FC_var_Cholesky), zlim = c(0.1, 0.3), cols = viridis(12), title = paste0(plot_title, "\nCholesky FC Template SD"))
-    # dev.off()
+    png(file.path(dir_data, paste0(base_name, "_FC_Cholesky_sd.png")), height = 550, width = 600)
+    plot_FC(sqrt(template_FC_var_Cholesky), zlim = c(0.1, 0.3), cols = viridis(12), title = paste0(plot_title, "\nCholesky FC Template SD"))
+    dev.off()
 
     # FC Inverse-Wishart
     template_FC_mean_InverseWishart <- template$template$FC$psi/(template$template$FC$nu - Q - 1)
@@ -75,11 +75,11 @@ for (file in template_files) {
     dev.off()
 
     # Save as png (2 images)
-    # png(file.path(dir_data, paste0(base_name, "_FC_InverseWishart_mean.png")), height = 550, width = 600)
-    # plot_FC(template_FC_mean_InverseWishart, zlim = zlim_FC, title = paste0(plot_title, "\nInverse-Wishart FC Template Mean"))
-    # dev.off()
+    png(file.path(dir_data, paste0(base_name, "_FC_InverseWishart_mean.png")), height = 550, width = 600)
+    plot_FC(template_FC_mean_InverseWishart, zlim = zlim_FC, title = paste0(plot_title, "\nInverse-Wishart FC Template Mean"))
+    dev.off()
 
-    # png(file.path(dir_data, paste0(base_name, "_FC_InverseWishart_sd.png")), height = 550, width = 600)
-    # plot_FC(sqrt(template_FC_var_InverseWishart), zlim = c(0.1, 0.3), cols = viridis(12), title = paste0(plot_title, "\nInverse-Wishart FC Template SD"))
-    # dev.off()
+    png(file.path(dir_data, paste0(base_name, "_FC_InverseWishart_sd.png")), height = 550, width = 600)
+    plot_FC(sqrt(template_FC_var_InverseWishart), zlim = c(0.1, 0.3), cols = viridis(12), title = paste0(plot_title, "\nInverse-Wishart FC Template SD"))
+    dev.off()
 }
