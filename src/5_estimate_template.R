@@ -1,4 +1,4 @@
-# example func call: estimate_and_export_template("LR", 15, FALSE, dir_personal, dir_data, dir_slate, TR_HCP)
+# example func call: estimate_and_export_template("LR", 15, FALSE, dir_personal, dir_data, dir_results, TR_HCP)
 
 # encoding is "LR" / "RL" / "combined"
 # nIC is 15 / 25 / 50 or 0 meaning it is yeo17 parcellation
@@ -9,7 +9,7 @@ estimate_and_export_template <- function(
   GSR,
   dir_personal,
   dir_data,
-  dir_slate,
+  dir_results,
   TR_HCP
 ) {
     # Get final list of subjects 
@@ -61,7 +61,7 @@ estimate_and_export_template <- function(
                 )
 
         # Save file
-        saveRDS(template, file.path(dir_slate, sprintf("template_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
+        saveRDS(template, file.path(dir_results, sprintf("template_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
 
     } else {
         # HCP IC
@@ -80,11 +80,11 @@ estimate_and_export_template <- function(
                 )
 
         # Save file
-        saveRDS(template, file.path(dir_slate, sprintf("template_%s_%dICs_GSR%s.rds", encoding, nIC, ifelse(GSR, "T", "F"))))
+        saveRDS(template, file.path(dir_results, sprintf("template_%s_%dICs_GSR%s.rds", encoding, nIC, ifelse(GSR, "T", "F"))))
 
         export_template(
             x = template,
-            out_fname = file.path(dir_slate, sprintf("template_%s_%dICs_GSR%s", encoding, nIC, ifelse(GSR, "T", "F")))
+            out_fname = file.path(dir_results, sprintf("template_%s_%dICs_GSR%s", encoding, nIC, ifelse(GSR, "T", "F")))
         )
     }
 

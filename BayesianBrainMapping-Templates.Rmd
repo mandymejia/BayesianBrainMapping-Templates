@@ -85,7 +85,7 @@ the following variables to match your local or cluster environment:
 
 -   `dir_data`
 
--   `dir_slate`
+-   `dir_results`
 
 -   `dir_personal`
 

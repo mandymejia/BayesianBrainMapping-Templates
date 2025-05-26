@@ -22,7 +22,7 @@ for (subject in subject_ids) {
 
             # fMRIscrub dev branch 14.0 needed as of now to have the resp filter option
             # [Nohelia] please confirm with Damon if this is now the main branch.  And please comment the version number required when the library is loaded.
-            fd <- FD(X=X[,1:6], lag=fd_lag_HCP, cutoff=fd_cutoff, TR_for_resp_filt=tr_resp_HCP)
+            fd <- FD(X=X[,1:6], lag=fd_lag_HCP, cutoff=fd_cutoff, TR_for_resp_filt=TR_HCP)
 
             mean_fd <- mean(fd$measure, na.rm = TRUE)
             
@@ -31,7 +31,6 @@ for (subject in subject_ids) {
             total_time_sec <- TR_HCP * valid_volumes
 
             # Check condition for filtering
-            # passed <- (mean_fd < max_mean_fd) && (total_time_sec >= min_total_sec)
             # No mean fd condition, only total time
             passed <- total_time_sec >= min_total_sec
             session_pass <- c(session_pass, passed)
@@ -59,8 +58,8 @@ for (subject in subject_ids) {
 valid_combined_subjects_FD <- intersect(valid_LR_subjects_FD, valid_RL_subjects_FD)
 
 # Save intermediate data in Slate
-write.csv(data.frame(subject_id=valid_LR_subjects_FD), file = file.path(dir_slate, "valid_LR_subjects_FD.csv"), row.names = FALSE)
-write.csv(data.frame(subject_id=valid_RL_subjects_FD), file = file.path(dir_slate, "valid_RL_subjects_FD.csv"), row.names = FALSE)
-write.csv(data.frame(subject_id=valid_combined_subjects_FD), file = file.path(dir_slate, "valid_combined_subjects_FD.csv"), row.names = FALSE)
-write.csv(fd_summary, file = file.path(dir_slate, "fd_summary.csv"), row.names = TRUE)
+write.csv(data.frame(subject_id=valid_LR_subjects_FD), file = file.path(dir_results, "valid_LR_subjects_FD.csv"), row.names = FALSE)
+write.csv(data.frame(subject_id=valid_RL_subjects_FD), file = file.path(dir_results, "valid_RL_subjects_FD.csv"), row.names = FALSE)
+write.csv(data.frame(subject_id=valid_combined_subjects_FD), file = file.path(dir_results, "valid_combined_subjects_FD.csv"), row.names = FALSE)
+write.csv(fd_summary, file = file.path(dir_results, "fd_summary.csv"), row.names = TRUE)
 
