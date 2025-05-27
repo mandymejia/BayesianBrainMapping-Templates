@@ -124,13 +124,19 @@ and filtered version of FD (CITE Pham Less is More and Power/Fair refs therein)
 appropriate for multiband data. FD is calculated from the `Movement_Regressors.txt` 
 file available in the HCP data for each subject, encoding and session.
 
-A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data. [@Nohelia, for template estimation, did we truncate the scan duration at 10 min? And was scrubbing implemented in template estimation?]
+A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data.
 
 The final subject list includes only those who passed the filtering criteria in both LR and RL encodings and in both visits (REST1 and REST2). This list is referred to as the `combined` 
 list and is the one used throughout this project.
 
 ```{r}
-#@Nohelia please comment here very briefly what this script does, what/where it writes out
+# This script filters subjects based on motion using framewise displacement (FD) from fMRIscrub.
+# For each subject, encoding (LR/RL), and session (REST1/REST2), it computes FD and valid scan time after excluding high-motion volumes.
+# Subjects with ≥10 minutes of valid data in both sessions are retained.
+# Outputs (saved in dir_results):
+# - Valid subject lists for LR, RL, and combined encodings (intersection)
+# - FD summary per subject/session/encoding
+
 # source(file.path(src_dir,"1_fd_time_filtering.R")) 
 ```
 
@@ -178,8 +184,12 @@ you can skip this step, resulting in some related subjects being included
 in your training data.
 
 ```{r}
-#@Nohelia please comment here very briefly what this script does, what/where it writes out
-#source(file.path(src_dir,"2_unrelated_filtering.R"))
+# This script filters subjects to retain only unrelated individuals, using Family ID information from the restricted HCP data.
+# For each encoding (LR, RL, combined), it selects one subject per family from the FD-valid lists.
+# Outputs (saved in dir_personal due to restricted data):
+# - Unrelated subject lists for LR, RL, and combined encodings (intersection)
+
+# source(file.path(src_dir,"2_unrelated_filtering.R"))
 ```
 
 ### 3.3 Filter Subjects to Balance Sex Within Age Groups
@@ -204,8 +214,13 @@ The final list of valid subjects is saved in `dir_results` as:
 -   `valid_combined_subjects_balanced.rds` (used in the template estimation step)
 
 ```{r}
-#@Nohelia please comment here very briefly what this script does, what/where it writes out
-#source(file.path(src_dir,"3_balance_age_sex.R"))
+# This script balances sex within each age group for subjects who passed FD and unrelated filtering.
+# For each encoding (LR, RL, combined), it samples subjects to equalize the number of males and females per age group, unless an age group includes only one gender (in which case no balancing is applied).
+# Uses age and gender information from the unrestricted HCP data.
+# Outputs (saved in dir_personal):
+# - Sex-balanced subject lists for LR, RL, and combined encodings (as .csv and .rds)
+
+# source(file.path(src_dir,"3_balance_age_sex.R"))
 ```
 
 ## 4. Prepare Group-Level Parcellations
@@ -224,7 +239,11 @@ subnetwork identifiers, grouping regions by their main network.
 The resulting parcellation is saved as `Yeo17_simplified_mwall.rds`.
 
 ```{r}
-#@Nohelia please comment here very briefly what this script does, what/where it writes out
+# This script simplifies the Yeo 17-network parcellation by collapsing region labels and masking out the medial wall.
+# It creates a cleaned version of the parcellation suitable for downstream analyses.
+# Output:
+# - Saved as RDS file in dir_data: "Yeo17_simplified_mwall.rds"
+
 # source(file.path(src_dir,"4_parcellations.R"))
 ```
 
@@ -267,9 +286,15 @@ The encoding parameter is set to `combined` to use the final list of subjects sa
 
 For these subjects, we include REST1 sessions only, but from both encodings:
 
-- `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+-   `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
-- `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+-   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+To ensure consistent scan duration across subjects, each time series was preprocessed as follows before template estimation:
+
+-   Truncated to the first 10 minutes of data (833 volumes at TR = 0.72s)
+
+-   The first 15 volumes were dropped to remove potential instability, resulting in 818 volumes per run
 
 The `nIC` parameter determines which parcellation is used:
 
@@ -289,7 +314,12 @@ In total, we estimate 8 templates varying the parcellation type and GSR inclusio
 -   Yeo 17-network parcellation: GSR = TRUE / FALSE
 
 ```{r}
-# Load function
+# This script defines the `estimate_and_export_template()` function to estimate and save functional connectivity templates.
+# It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, with or without global signal regression (GSR).
+# For templates using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, truncates each scan to 10 minutes, and drops the first 15 volumes.
+# Outputs:
+# - Template `.rds` file saved in `dir_results`
+
 # source("5_estimate_template.R")
 ```
 
@@ -306,26 +336,52 @@ To illustrate the process, we demonstrate a minimal example using 2 subjects, wi
 
 -   REST1 session from both LR and RL encodings
 
+-   Truncation and frame dropping applied, as in the full pipeline
+
 ```{r warning=FALSE}
 # test_subjects <- c("100307", "100206")
+# drop <- 15
+# total_vols <- floor(600 / 0.72) 
+# keep_idx <- (drop + 1):total_vols
 # 
-# BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+# BOLD1 <- list()
+# BOLD2 <- list()
 # 
-# BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+# for (subject in test_subjects) {
+#   # REST1 LR
+#   bold1_path <- file.path("~/Desktop", subject, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+#   bold1_data <- read_cifti(bold1_path)$data
+#   bold1_matrix <- rbind(
+#     bold1_data$cortex_left[, keep_idx],
+#     bold1_data$cortex_right[, keep_idx],
+#     bold1_data$subcort[, keep_idx]
+#   )
+#   BOLD1[[length(BOLD1) + 1]] <- bold1_matrix
+# 
+#   # REST1 RL
+#   bold2_path <- file.path("~/Desktop", subject, "rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+#   bold2_data <- read_cifti(bold2_path)$data
+#   bold2_matrix <- rbind(
+#     bold2_data$cortex_left[, keep_idx],
+#     bold2_data$cortex_right[, keep_idx],
+#     bold2_data$subcort[, keep_idx]
+#   )
+#   BOLD2[[length(BOLD2) + 1]] <- bold2_matrix
+# }
 # 
 # GICA <- read_cifti(file.path(dir_data, "GICA_15IC.dscalar.nii"))
 # 
 # template <- estimate_template(
-#     BOLD = BOLD_paths1,
-#     BOLD2 = BOLD_paths2,
-#     GSR=TRUE,
-#     TR = 0.72,
-#     hpf = 0.01,
-#     Q2 = 0,
-#     Q2_max = NULL,
-#     verbose=TRUE,
-#     GICA=GICA
-#   )
+#   BOLD = BOLD1,
+#   BOLD2 = BOLD2,
+#   GSR = TRUE,
+#   TR = 0.72,
+#   hpf = 0.01,
+#   Q2 = 0,
+#   Q2_max = NULL,
+#   verbose = TRUE,
+#   GICA = GICA
+# )
 ```
 
 Note: This example is for demonstration purpose only.
