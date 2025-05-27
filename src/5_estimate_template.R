@@ -17,22 +17,55 @@ estimate_and_export_template <- function(
 
     # Construct file paths
     if (encoding == "LR" | encoding == "RL") {
-        BOLD_paths1 <- file.path("/N/project/hcp_dcwan", 
+        # TODO: Implement truncation and dropping frames for this case (not needed now)
+        BOLD1 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
                                 sprintf("MNINonLinear/Results/rfMRI_REST1_%s/rfMRI_REST1_%s_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
     
-        BOLD_paths2 <- file.path("/N/project/hcp_dcwan", 
+        BOLD2 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
                                 sprintf("MNINonLinear/Results/rfMRI_REST2_%s/rfMRI_REST2_%s_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
     } else {
-        # TODO: Read file and make manipulation (truncate 10 min, drop 15 first frames -> scrubbing implemented in estimate_template)
-        BOLD_paths1 <- file.path("/N/project/hcp_dcwan", 
-                                final_subject_ids, 
+        # Implement truncation (10 min) and dropping 15 first frames
+        # Lists of final data 
+        BOLD1 <- list()
+        BOLD2 <- list()
+        
+        # For each subject, truncate, drop frames, and append to list
+        for (subject in final_subject_ids) { 
+            # BOLD1 (REST1 LR)
+            # Read file 
+            BOLD1_path <- file.path("/N/project/hcp_dcwan", 
+                                subject, 
                                 "MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-    
-        BOLD_paths2 <- file.path("/N/project/hcp_dcwan", 
-                                final_subject_ids, 
+            BOLD1_data <- read_cifti(BOLD1_path)$data
+            # Truncate 10 min
+            total_vols <- floor(min_total_sec / TR_HCP)
+            # Drop 15 first frames
+            drop <- 15
+            keep_idx <- (drop + 1):total_vols
+            BOLD1_matrix <- rbind(
+                BOLD1_data$cortex_left[, keep_idx],
+                BOLD1_data$cortex_right[, keep_idx],
+                BOLD1_data$subcort[, keep_idx]
+            )
+
+            # Append to final list
+            BOLD1[[length(BOLD1) + 1]] <- BOLD1_matrix
+
+            # BOLD2 (REST1 RL)
+            BOLD2_path <- file.path("/N/project/hcp_dcwan", 
+                                subject, 
                                 "MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+            BOLD2_data <- read_cifti(BOLD2_path)$data
+            BOLD2_matrix <- rbind(
+                BOLD2_data$cortex_left[, keep_idx],
+                BOLD2_data$cortex_right[, keep_idx],
+                BOLD2_data$subcort[, keep_idx]
+            )
+            BOLD2[[length(BOLD2) + 1]] <- BOLD2_matrix
+
+        }
     }
 
     cat("Estimating template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
@@ -46,8 +79,8 @@ estimate_and_export_template <- function(
         inds <- valid_keys[valid_keys > 0]
 
         template <- estimate_template(
-                BOLD = BOLD_paths1,
-                BOLD2 = BOLD_paths2,
+                BOLD = BOLD1,
+                BOLD2 = BOLD2,
                 GICA = GICA,
                 GSR=GSR,
                 TR = TR_HCP,
@@ -67,8 +100,8 @@ estimate_and_export_template <- function(
         GICA <- file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC))
 
         template <- estimate_template(
-                BOLD = BOLD_paths1,
-                BOLD2 = BOLD_paths2,
+                BOLD = BOLD1,
+                BOLD2 = BOLD2,
                 GICA = GICA,
                 GSR=GSR,
                 TR = TR_HCP,
