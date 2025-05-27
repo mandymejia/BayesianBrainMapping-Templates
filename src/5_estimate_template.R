@@ -25,8 +25,7 @@ estimate_and_export_template <- function(
                                 final_subject_ids, 
                                 sprintf("MNINonLinear/Results/rfMRI_REST2_%s/rfMRI_REST2_%s_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
     } else {
-        # Concatenating is not supported yet --> for bold 1 path lr and rl with rest 1, for bold 2 path lr and rl with rest 2
-        # So stick to one session and use both LR and RL
+        # TODO: Read file and make manipulation (truncate 10 min, drop 15 first frames -> scrubbing implemented in estimate_template)
         BOLD_paths1 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
                                 "MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")

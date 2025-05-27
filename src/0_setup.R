@@ -6,6 +6,7 @@
 # install.packages("fMRIscrub")          
 # install.packages("fMRItools")          
 # install.packages("viridis")
+# TODO: Change -> this is already main branch
 # devtools::install_github("mandymejia/fMRIscrub", "14.0") 
 
 # Load packages
@@ -16,7 +17,6 @@ library(fMRItools)       # version 0.5.3
 library(viridis)         # version 0.6.5 
 
 # Set CIFTI Workbench path
-# TODO: download connectome workbench if not downloaded already and modify path below
 # wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
 # locally
 wb_path <- "~/Downloads/workbench"
@@ -31,11 +31,11 @@ dir_results <- "/N/project/brain_prediction"
 dir_personal <- "/N/u/ndasilv/Quartz" #[Nohelia] -- this is not used (used in the estimate_and_export_template function to access the final list of subjects (in personal directory of slate since it contains subjects using the restricted data)
 dir_data <- file.path(dir_project, "data")
 HCP_unrestricted_fname <- file.path(dir_project, "data", "unrestricted_HCP_demographics.csv")
-HCP_restricted_fname <- "..."
+# HCP_restricted_fname <- "..."
 
 # Read CSV
 HCP_unrestricted <- read.csv(HCP_unrestricted_fname)
-HCP_restricted <- read.csv(HCP_restricted_fname)
+# HCP_restricted <- read.csv(HCP_restricted_fname)
 
 # All subject IDS
 subject_ids <- HCP_unrestricted$Subject

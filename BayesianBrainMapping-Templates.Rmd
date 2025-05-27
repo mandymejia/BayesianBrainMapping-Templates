@@ -3,8 +3,8 @@ title: "BayesianBrainMapping-Templates"
 author: "authors"
 date: "2025-05-07"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 editor_options:
   markdown:
     wrap: sentence
@@ -65,13 +65,25 @@ To reproduce this workflow, first clone the repository to your local machine or 
 # cd BayesianBrainMapping-Templates
 ```
 
-Next, download the required data/ folder from the following OSF link and place it inside the cloned repository:
+Next, download the required `data/` folder from the following OSF link:
 
 [`https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef`](https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef)
 
-Once downloaded, unzip the contents so the folder structure looks like this:
+Once downloaded, unzip the folder and place the `data/` directory inside your cloned GitHub repository, so the folder structure looks like this:
 
-<pre> ```text BayesianBrainMapping-Templates/ ├── data/ │ ├── template_rds/ │ ├── parcellations_plots/ │ └── ... ├── src/ │ ├── 0_setup.R │ ├── 1_fd_time_filtering.R │ └── ... ├── BayesianBrainMapping-Templates.Rmd └── README.md ``` </pre>
+<pre>
+BayesianBrainMapping-Templates/
+├── data/
+│   ├── template_rds/
+│   └── parcellations_plots/
+│   └── ...
+├── src/
+│   ├── 0_setup.R
+│   └── 1_fd_time_filtering.R
+|   └── ...
+├── BayesianBrainMapping-Templates.Rmd
+└── ...
+</pre>
 
 This section initializes the environment by loading required packages, setting analysis parameters, and defining directory paths.
 
@@ -79,15 +91,13 @@ This section initializes the environment by loading required packages, setting a
 necessary packages, ensure you have an installation of Connectome Workbench, and update 
 the following variables to match your local or cluster environment:
 
-[@Nohelia: Can you briefly describe the role of each directory below, like you did for the HCP csv and wb_path?]
+-   `dir_project` (path to the main project folder that contains all code and data (i.e., your local clone of BayesianBrainMapping-Templates))
 
--   `dir_project` 
+-   `dir_data` (path to the `data/` folder inside the project directory, downloaded from OSF in the previous step)
 
--   `dir_data`
+-   `dir_results` (path to the folder where all output files are saved)
 
--   `dir_results`
-
--   `dir_personal`
+-   `dir_personal` (path to your personal user directory on the cluster)
 
 -   `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
 
@@ -103,7 +113,7 @@ source(file.path(src_dir, "0_setup.R"))
 
 Before estimating the BBM priors, we first select a high-quality, balanced subject 
 sample to ensure reliable, representative priors. Starting from the full HCP sample of
-[@Nohelia, insert starting number], we apply the following filtering steps:
+1206, we apply the following filtering steps:
 
 ### 3.1 Filter Subjects by Sufficient fMRI Scan Duration
 
@@ -116,8 +126,7 @@ file available in the HCP data for each subject, encoding and session.
 
 A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data. [@Nohelia, for template estimation, did we truncate the scan duration at 10 min? And was scrubbing implemented in template estimation?]
 
-The final subject list includes only those who passed the filtering criteria in both LR and RL encodings.
-[@Nohelia -- and for both visits also?] This list is referred to as the `combined` 
+The final subject list includes only those who passed the filtering criteria in both LR and RL encodings and in both visits (REST1 and REST2). This list is referred to as the `combined` 
 list and is the one used throughout this project.
 
 ```{r}
@@ -141,10 +150,7 @@ During this step, an FD summary table is generated with the following columns:
 
 ```{r}
 # Read FD summary
-fd_summary <- read.csv("~/Documents/StatMIND/Data/fd_summary.csv") 
-#@Nohelia is there a reason this is saved locally and not in the Github?  That would be more convenient
-#so people running this have access to it.  We can share it, so that they can still use/view it even if they
-#don't run the script.
+fd_summary <- read.csv(file.path(dir_data, "fd_summary.csv"))
 
 # Display the first 4 rows
 knitr::kable(head(fd_summary, 4), caption = "First rows of FD summary table")
@@ -159,10 +165,7 @@ if desired (e.g., mean_fd \< 0.2).
 ### 3.2 Filter Unrelated Subjects
 
 Building on the previous step, we use the HCP restricted demographic data to 
-exclude related individuals. [@Nohelia very important that we don't share the list
-of final subjects included, because that could reveal which subjects are related.  Can you
-confirm we do not share that information?]
-This step helps ensure the statistical independence of subjects in the group-level template estimation.
+exclude related individuals. This step helps ensure the statistical independence of subjects in the group-level template estimation.
 
 For the `combined` list of valid subjects derived in the previous step, we:
 
@@ -194,7 +197,7 @@ For the `combined` list of valid and unrelated subjects, we:
 
 Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_combined_subjects_FD` instead of `valid_combined_subjects_unrelated`.
 
-The final list of valid subjects is saved [@Nohelia -- where?] as:
+The final list of valid subjects is saved in `dir_results` as:
 
 -   `valid_combined_subjects_balanced.csv`
 
@@ -473,11 +476,11 @@ TODO: ADD NAMES TO PARCELLATION PLOTS NO NUMBERS (ALSO LOWER CASE)
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DorsAttnA.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_mean_DefaultA.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_mean_DorsAttnA.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DefaultA_mean.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DorsAttnA_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_sd_DefaultA.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "yeo17", "GSR=T", "template_combined_yeo17_GSRT_sd_DorsAttnA.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DefaultA_sd.png"))
+knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DorsAttnA_sd.png"))
 ```
 
 ### 6.4 Visualize Template Functional Connectivity

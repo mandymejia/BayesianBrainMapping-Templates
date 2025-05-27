@@ -19,8 +19,6 @@ for (subject in subject_ids) {
 
             X <- as.matrix(read.table(path))
 
-            # fMRIscrub dev branch 14.0 needed as of now to have the resp filter option
-            # [Nohelia] please confirm with Damon if this is now the main branch.  And please comment the version number required when the library is loaded. -> asked waiting 
             fd <- FD(X=X[,1:6], lag=fd_lag_HCP, cutoff=fd_cutoff, TR_for_resp_filt=TR_HCP)
 
             mean_fd <- mean(fd$measure, na.rm = TRUE)
