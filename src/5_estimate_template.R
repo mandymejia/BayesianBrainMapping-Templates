@@ -38,8 +38,8 @@ estimate_and_export_template <- function(
 
     T_total <- floor(600 / TR)
     T_scrub_start <- T_total + 1
-    scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:100000, simplify = FALSE)
-    scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:100000, simplify = FALSE)
+    scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
+    scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
     scrub <- list(scrub_BOLD1, scrub_BOLD2)
 
     if (nIC == 0) {
