@@ -17,55 +17,21 @@ estimate_and_export_template <- function(
 
     # Construct file paths
     if (encoding == "LR" | encoding == "RL") {
-        # TODO: Implement truncation and dropping frames for this case (not needed now)
-        BOLD1 <- file.path("/N/project/hcp_dcwan", 
+        BOLD_paths1 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
                                 sprintf("MNINonLinear/Results/rfMRI_REST1_%s/rfMRI_REST1_%s_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
     
-        BOLD2 <- file.path("/N/project/hcp_dcwan", 
+        BOLD_paths2 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
                                 sprintf("MNINonLinear/Results/rfMRI_REST2_%s/rfMRI_REST2_%s_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
     } else {
-        # Implement truncation (10 min) and dropping 15 first frames
-        # Lists of final data 
-        BOLD1 <- list()
-        BOLD2 <- list()
-        
-        # For each subject, truncate, drop frames, and append to list
-        for (subject in final_subject_ids) { 
-            # BOLD1 (REST1 LR)
-            # Read file 
-            BOLD1_path <- file.path("/N/project/hcp_dcwan", 
-                                subject, 
-                                "MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-            BOLD1_data <- read_cifti(BOLD1_path)$data
-            # Truncate 10 min
-            total_vols <- floor(min_total_sec / TR_HCP)
-            # Drop 15 first frames
-            drop <- 15
-            keep_idx <- (drop + 1):total_vols
-            BOLD1_matrix <- rbind(
-                BOLD1_data$cortex_left[, keep_idx],
-                BOLD1_data$cortex_right[, keep_idx],
-                BOLD1_data$subcort[, keep_idx]
-            )
-
-            # Append to final list
-            BOLD1[[length(BOLD1) + 1]] <- BOLD1_matrix
-
-            # BOLD2 (REST1 RL)
-            BOLD2_path <- file.path("/N/project/hcp_dcwan", 
-                                subject, 
-                                "MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-            BOLD2_data <- read_cifti(BOLD2_path)$data
-            BOLD2_matrix <- rbind(
-                BOLD2_data$cortex_left[, keep_idx],
-                BOLD2_data$cortex_right[, keep_idx],
-                BOLD2_data$subcort[, keep_idx]
-            )
-            BOLD2[[length(BOLD2) + 1]] <- BOLD2_matrix
-
-        }
+        BOLD_paths1 <- file.path("/N/project/hcp_dcwan", 
+                                final_subject_ids, 
+                                sprintf("MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
+    
+        BOLD_paths2 <- file.path("/N/project/hcp_dcwan", 
+                                final_subject_ids, 
+                                sprintf("MNINonLinear/Results/rfMRI_REST2_RL/rfMRI_REST2_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
     }
 
     cat("Estimating template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
@@ -78,19 +44,22 @@ estimate_and_export_template <- function(
         valid_keys <- GICA$meta$cifti$labels[[1]]$Key
         inds <- valid_keys[valid_keys > 0]
 
-        template <- estimate_template(
-                BOLD = BOLD1,
-                BOLD2 = BOLD2,
-                GICA = GICA,
-                GSR=GSR,
+        template <- estimate_prior(
+                BOLD = BOLD_paths1,
+                BOLD2 = BOLD_paths2,
+                template = GICA,
+                GSR = GSR,
                 TR = TR_HCP,
                 hpf = 0.01,
                 Q2 = 0,
                 Q2_max = NULL,
-                verbose=TRUE,
-                inds=inds,
-                brainstructures=c("left", "right")
+                verbose = TRUE,
+                inds = inds,
+                brainstructures = c("left", "right"),
+                drop_first = 15
+                # TODO: new params (truncate data)  
                 )
+        
 
         # Save file
         saveRDS(template, file.path(dir_results, sprintf("template_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
@@ -99,16 +68,18 @@ estimate_and_export_template <- function(
         # HCP IC
         GICA <- file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC))
 
-        template <- estimate_template(
+        template <- estimate_prior(
                 BOLD = BOLD1,
                 BOLD2 = BOLD2,
-                GICA = GICA,
-                GSR=GSR,
+                template = GICA,
+                GSR = GSR,
                 TR = TR_HCP,
                 hpf = 0.01,
                 Q2 = 0,
                 Q2_max = NULL,
-                verbose=TRUE
+                verbose = TRUE,
+                drop_first = 15
+                ### TODO: new params (truncate data)  
                 )
 
         # Save file

@@ -1,18 +1,21 @@
 # Setup
 
 # Download packages
+# TODO: add devtools download
 # install.packages("ciftiTools")         
 # install.packages("templateICAr")       
 # devtools::install_github("mandymejia/fMRIscrub", "14.0")          
 # install.packages("fMRItools")          
 # install.packages("viridis")
+# devtools::install_github("mandymejia/BayesBrainMap")
 
 # Load packages
 library(ciftiTools)      # version 0.17.4
 library(templateICAr)    # version 0.9.1 
 library(fMRIscrub)       # version 0.14.7
 library(fMRItools)       # version 0.5.3
-library(viridis)         # version 0.6.5 
+library(viridis)         # version 0.6.5
+library(BayesBrainMap)   # version: 0.11.0
 
 # Set CIFTI Workbench path
 wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
