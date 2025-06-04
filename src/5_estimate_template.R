@@ -75,8 +75,8 @@ estimate_and_export_template <- function(
         GICA <- file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC))
 
         template <- estimate_prior(
-                BOLD = BOLD1,
-                BOLD2 = BOLD2,
+                BOLD = BOLD_paths1,
+                BOLD2 = BOLD_paths2,
                 template = GICA,
                 GSR = GSR,
                 TR = TR_HCP,
