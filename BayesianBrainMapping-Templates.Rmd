@@ -278,7 +278,7 @@ knitr::include_graphics("yeo17_legend.png")
 
 ## 5. Estimate Templates
 
-In this step, we estimate group-level statistical templates using the `estimate_template()` function from the `templateICAr` package.
+In this step, we estimate group-level statistical templates using the `estimate_prior()` function from the `BayesBrainMap` package.
 
 The helper function `estimate_and_export_template()` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
 
@@ -290,11 +290,7 @@ For these subjects, we include REST1 sessions only, but from both encodings:
 
 -   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
-To ensure consistent scan duration across subjects, each time series was preprocessed as follows before template estimation:
-
--   Truncated to the first 10 minutes of data (833 volumes at TR = 0.72s)
-
--   The first 15 volumes were dropped to remove potential instability, resulting in 818 volumes per run
+TODO: add truncation and drop_first param explanation in here 
 
 The `nIC` parameter determines which parcellation is used:
 
@@ -314,9 +310,9 @@ In total, we estimate 8 templates varying the parcellation type and GSR inclusio
 -   Yeo 17-network parcellation: GSR = TRUE / FALSE
 
 ```{r}
-# This script defines the `estimate_and_export_template()` function to estimate and save functional connectivity templates.
+# This script defines the `estimate_and_export_template()` function to estimate and save functional connectivity priors.
 # It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, with or without global signal regression (GSR).
-# For templates using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, truncates each scan to 10 minutes, and drops the first 15 volumes.
+# For templates using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and ... ## TODO: truncates dont know how yet?
 # Outputs:
 # - Template `.rds` file saved in `dir_results`
 
@@ -336,51 +332,26 @@ To illustrate the process, we demonstrate a minimal example using 2 subjects, wi
 
 -   REST1 session from both LR and RL encodings
 
--   Truncation and frame dropping applied, as in the full pipeline
-
 ```{r warning=FALSE}
 # test_subjects <- c("100307", "100206")
-# drop <- 15
-# total_vols <- floor(600 / 0.72) 
-# keep_idx <- (drop + 1):total_vols
-# 
-# BOLD1 <- list()
-# BOLD2 <- list()
-# 
-# for (subject in test_subjects) {
-#   # REST1 LR
-#   bold1_path <- file.path("~/Desktop", subject, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-#   bold1_data <- read_cifti(bold1_path)$data
-#   bold1_matrix <- rbind(
-#     bold1_data$cortex_left[, keep_idx],
-#     bold1_data$cortex_right[, keep_idx],
-#     bold1_data$subcort[, keep_idx]
-#   )
-#   BOLD1[[length(BOLD1) + 1]] <- bold1_matrix
-# 
-#   # REST1 RL
-#   bold2_path <- file.path("~/Desktop", subject, "rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-#   bold2_data <- read_cifti(bold2_path)$data
-#   bold2_matrix <- rbind(
-#     bold2_data$cortex_left[, keep_idx],
-#     bold2_data$cortex_right[, keep_idx],
-#     bold2_data$subcort[, keep_idx]
-#   )
-#   BOLD2[[length(BOLD2) + 1]] <- bold2_matrix
-# }
+#
+# BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
+# BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
 # 
 # GICA <- read_cifti(file.path(dir_data, "GICA_15IC.dscalar.nii"))
 # 
-# template <- estimate_template(
-#   BOLD = BOLD1,
-#   BOLD2 = BOLD2,
+# template <- estimate_prior(
+#   BOLD = BOLD_paths1,
+#   BOLD2 = BOLD_paths2,
+#   template = GICA,
 #   GSR = TRUE,
 #   TR = 0.72,
 #   hpf = 0.01,
 #   Q2 = 0,
 #   Q2_max = NULL,
 #   verbose = TRUE,
-#   GICA = GICA
+#   drop_first = 15,
+#   # TODO: add other params?
 # )
 ```
 
@@ -426,8 +397,6 @@ Each pair of files corresponds to a specific ICA component and captures its spat
 ### 6.2 Visualize Template ICA Components
 
 Script: `6_visualization_template.R`
-
-TODO: where to upload the template_rds (too big for github)
 
 This script loads each estimated template file from `template_rds/` and plots both the mean and standard deviation components for all independent components (ICs).
 
@@ -479,8 +448,6 @@ All images were generated using the scripts:
 
 For the 15 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 15):
 
-TODO: dont do plot but add image instead? regenerate them with titles
-
 ```{r fig.show='hold', out.width='48%'}
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC15.png"))
@@ -525,8 +492,6 @@ knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC"
 #### 6.3.4 Yeo17
 
 For the Yeo17 parcellation, we show visualizations of the two main networks (`DefaultA` and `DorsAttnA`):
-
-TODO: ADD NAMES TO PARCELLATION PLOTS NO NUMBERS (ALSO LOWER CASE)
 
 ```{r fig.show='hold', out.width='48%'}
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
