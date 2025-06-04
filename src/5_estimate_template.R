@@ -27,16 +27,16 @@ estimate_and_export_template <- function(
     } else {
         BOLD_paths1 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
-                                sprintf("MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
+                                sprintf("MNINonLinear/Results/rfMRI_REST1_LR/rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii"))
     
         BOLD_paths2 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
-                                sprintf("MNINonLinear/Results/rfMRI_REST2_RL/rfMRI_REST2_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii", encoding, encoding))
+                                sprintf("MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST2_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii"))
     }
 
     cat("Estimating template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
 
-    T_total <- floor(600 / TR)
+    T_total <- floor(600 / TR_HCP)
     T_scrub_start <- T_total + 1
     scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
     scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
