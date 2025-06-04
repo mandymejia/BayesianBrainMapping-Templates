@@ -36,6 +36,12 @@ estimate_and_export_template <- function(
 
     cat("Estimating template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
 
+    T_total <- floor(600 / TR)
+    T_scrub_start <- T_total + 1
+    scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:100000, simplify = FALSE)
+    scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:100000, simplify = FALSE)
+    scrub <- list(scrub_BOLD1, scrub_BOLD2)
+
     if (nIC == 0) {
         # yeo17 parcellation
         GICA <- readRDS(file.path(dir_data, "Yeo17_simplified_mwall.rds"))
@@ -56,8 +62,8 @@ estimate_and_export_template <- function(
                 verbose = TRUE,
                 inds = inds,
                 brainstructures = c("left", "right"),
-                drop_first = 15
-                # TODO: new params (truncate data)  
+                drop_first = 15,
+                scrub = scrub # unsure if this is the right way?
                 )
         
 
@@ -78,8 +84,8 @@ estimate_and_export_template <- function(
                 Q2 = 0,
                 Q2_max = NULL,
                 verbose = TRUE,
-                drop_first = 15
-                ### TODO: new params (truncate data)  
+                drop_first = 15,
+                scrub = scrub
                 )
 
         # Save file
