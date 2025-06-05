@@ -31,7 +31,7 @@ estimate_and_export_template <- function(
     
         BOLD_paths2 <- file.path("/N/project/hcp_dcwan", 
                                 final_subject_ids, 
-                                sprintf("MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST2_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii"))
+                                sprintf("MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii"))
     }
 
     cat("Estimating template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
