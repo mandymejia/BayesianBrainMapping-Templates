@@ -91,10 +91,6 @@ estimate_and_export_template <- function(
         # Save file
         saveRDS(template, file.path(dir_results, sprintf("template_%s_%dICs_GSR%s.rds", encoding, nIC, ifelse(GSR, "T", "F"))))
 
-        export_template(
-            x = template,
-            out_fname = file.path(dir_results, sprintf("template_%s_%dICs_GSR%s", encoding, nIC, ifelse(GSR, "T", "F")))
-        )
     }
 
     cat("Saved template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
