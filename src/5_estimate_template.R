@@ -83,9 +83,10 @@ estimate_and_export_template <- function(
                 hpf = 0.01,
                 Q2 = 0,
                 Q2_max = NULL,
-                verbose = TRUE,
-                drop_first = 15,
-                scrub = scrub
+                verbose = TRUE
+                # testing with no scrub and drop_first to see if error persists
+                # drop_first = 15,
+                # scrub = scrub
                 )
 
         # Save file
