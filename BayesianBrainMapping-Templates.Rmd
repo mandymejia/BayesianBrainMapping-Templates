@@ -301,15 +301,15 @@ T_total <- floor(600 / TR_HCP) # 8330
 To define the volumes to scrub (i.e., exclude beyond 10 minutes), we compute:
 
 ```{r}
-T_scrub_start <- T_total + 1
-scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
-scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
-scrub <- list(scrub_BOLD1, scrub_BOLD2)
+# T_scrub_start <- T_total + 1
+# scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
+# scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
+# scrub <- list(scrub_BOLD1, scrub_BOLD2)
 ```
 
 Because `drop_first = 15` removes frames before truncation, the final retained time series per scan will be slightly shorter than 10 minutes. Approximately:
 
-```{r}
+```
 (833 - 15) * 0.72 = ~589 seconds (~9.8 minutes)
 ```
 
@@ -613,10 +613,12 @@ knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", 
 knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
 ```
 
-## 7. Group-Level Analysis (individual?)
+## 7. Individual Analysis Example
 
 example on how to use the templates TEMAPLATE ICA VISUALIZATION
-- engagements (bayes brain map)
+- lets pick one - 15 ic, gsr true, combined list
+- engagements
+- BrainMap
 
 
 
