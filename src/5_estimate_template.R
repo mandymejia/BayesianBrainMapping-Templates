@@ -63,7 +63,7 @@ estimate_and_export_template <- function(
                 inds = inds,
                 brainstructures = c("left", "right"),
                 drop_first = 15,
-                scrub = scrub # unsure if this is the right way?
+                scrub = scrub
                 )
         
 

@@ -280,17 +280,44 @@ knitr::include_graphics("yeo17_legend.png")
 
 In this step, we estimate group-level statistical templates using the `estimate_prior()` function from the `BayesBrainMap` package.
 
-The helper function `estimate_and_export_template()` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
+The helper function `estimate_and_export_template()` in the file `5_estimate_template.R` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
 
-The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions, were unrelated, and were sex-balanced within age groups.
+The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions in both sessions, were unrelated, and were sex-balanced within age groups.
+
+To standardize scan duration and improve data quality, we apply both initial volume dropping and temporal truncation using parameters handled directly by the `estimate_prior()` function from the `BayesBrainMap` package.
+
+Specifically:
+
+- `drop_first = 15` removes the first 15 volumes from each scan to eliminate early signal instability and motion artifacts.
+
+- `scrub` defines volumes to exclude after a target duration. In our case, we truncate data to the first 10 minutes (600 seconds), excluding any volumes beyond that point.
+
+Given the HCP TR of 0.72 seconds, 10 minutes corresponds to:
+
+```{r}
+T_total <- floor(600 / TR_HCP) # 8330
+```
+
+To define the volumes to scrub (i.e., exclude beyond 10 minutes), we compute:
+
+```{r}
+T_scrub_start <- T_total + 1
+scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
+scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
+scrub <- list(scrub_BOLD1, scrub_BOLD2)
+```
+
+Because `drop_first = 15` removes frames before truncation, the final retained time series per scan will be slightly shorter than 10 minutes. Approximately:
+
+```{r}
+(833 - 15) * 0.72 = ~589 seconds (~9.8 minutes)
+```
 
 For these subjects, we include REST1 sessions only, but from both encodings:
 
 -   `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
 -   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
-
-TODO: add truncation and drop_first param explanation in here 
 
 The `nIC` parameter determines which parcellation is used:
 
@@ -312,7 +339,7 @@ In total, we estimate 8 templates varying the parcellation type and GSR inclusio
 ```{r}
 # This script defines the `estimate_and_export_template()` function to estimate and save functional connectivity priors.
 # It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, with or without global signal regression (GSR).
-# For templates using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and ... ## TODO: truncates dont know how yet?
+# For templates using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and truncates each scan to approximately 10 minutes.
 # Outputs:
 # - Template `.rds` file saved in `dir_results`
 
@@ -321,7 +348,7 @@ In total, we estimate 8 templates varying the parcellation type and GSR inclusio
 
 ## 5.1 Example Run on 2 subjects
 
-Running `estimate_template()` on the full `"combined"` subject list (~350 subjects) takes approximately 27 hours and uses 135 GB of memory.
+Running `estimate_prior()` on the full `"combined"` subject list (~350 subjects) takes approximately 27 hours and uses 135 GB of memory.
 These templates were estimated on Quartz, a high-performance computing cluster.
 
 To illustrate the process, we demonstrate a minimal example using 2 subjects, with:
@@ -338,6 +365,12 @@ To illustrate the process, we demonstrate a minimal example using 2 subjects, wi
 # BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
 # BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
 # 
+# T_total <- floor(600 / TR_HCP)
+# T_scrub_start <- T_total + 1
+# scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
+# scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
+# scrub <- list(scrub_BOLD1, scrub_BOLD2)
+#
 # GICA <- read_cifti(file.path(dir_data, "GICA_15IC.dscalar.nii"))
 # 
 # template <- estimate_prior(
@@ -351,7 +384,7 @@ To illustrate the process, we demonstrate a minimal example using 2 subjects, wi
 #   Q2_max = NULL,
 #   verbose = TRUE,
 #   drop_first = 15,
-#   # TODO: add other params?
+#   scrub = scrub
 # )
 ```
 
@@ -583,6 +616,8 @@ knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", 
 ## 7. Group-Level Analysis (individual?)
 
 example on how to use the templates TEMAPLATE ICA VISUALIZATION
+- engagements (bayes brain map)
+
 
 
 
