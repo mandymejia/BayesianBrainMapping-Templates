@@ -24,9 +24,9 @@ wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
 ciftiTools.setOption("wb_path", wb_path) 
 
 # Set up paths
-# dir_project <- "/N/u/ndasilv/Quartz/Documents/GitHub/BayesianBrainMapping-Templates"
+dir_project <- "/N/u/ndasilv/Quartz/Documents/GitHub/BayesianBrainMapping-Templates"
 # locally
-dir_project <- "~/Documents/StatMIND/BayesianBrainMapping-Templates"
+# dir_project <- "~/Documents/StatMIND/BayesianBrainMapping-Templates"
 dir_HCP <- "/N/project/hcp_dcwan"
 dir_results <- "/N/project/brain_prediction"
 dir_personal <- "/N/u/ndasilv/Quartz"

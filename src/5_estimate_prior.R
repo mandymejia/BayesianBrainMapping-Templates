@@ -1,9 +1,9 @@
-# example func call: estimate_and_export_template("LR", 15, FALSE, dir_personal, dir_data, dir_results, TR_HCP)
+# example func call: estimate_and_export_prior("LR", 15, FALSE, dir_personal, dir_data, dir_results, TR_HCP)
 
 # encoding is "LR" / "RL" / "combined"
 # nIC is 15 / 25 / 50 or 0 meaning it is yeo17 parcellation
 # GSR is TRUE / FALSE
-estimate_and_export_template <- function(
+estimate_and_export_prior <- function(
   encoding,
   nIC,
   GSR,
@@ -34,7 +34,7 @@ estimate_and_export_template <- function(
                                 sprintf("MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii"))
     }
 
-    cat("Estimating template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
+    cat("Estimating prior for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
 
     T_total <- floor(600 / TR_HCP)
     T_scrub_start <- T_total + 1
@@ -50,7 +50,7 @@ estimate_and_export_template <- function(
         valid_keys <- GICA$meta$cifti$labels[[1]]$Key
         inds <- valid_keys[valid_keys > 0]
 
-        template <- estimate_prior(
+        prior <- estimate_prior(
                 BOLD = BOLD_paths1,
                 BOLD2 = BOLD_paths2,
                 template = GICA,
@@ -68,13 +68,13 @@ estimate_and_export_template <- function(
         
 
         # Save file
-        saveRDS(template, file.path(dir_results, sprintf("template_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
+        saveRDS(prior, file.path(dir_results, sprintf("prior_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
 
     } else {
         # HCP IC
         GICA <- file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC))
 
-        template <- estimate_prior(
+        prior <- estimate_prior(
                 BOLD = BOLD_paths1,
                 BOLD2 = BOLD_paths2,
                 template = GICA,
@@ -90,9 +90,9 @@ estimate_and_export_template <- function(
                 )
 
         # Save file
-        saveRDS(template, file.path(dir_results, sprintf("template_%s_%dICs_GSR%s.rds", encoding, nIC, ifelse(GSR, "T", "F"))))
+        saveRDS(prior, file.path(dir_results, sprintf("prior_%s_%dICs_GSR%s.rds", encoding, nIC, ifelse(GSR, "T", "F"))))
 
     }
 
-    cat("Saved template for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
+    cat("Saved prior for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
 }

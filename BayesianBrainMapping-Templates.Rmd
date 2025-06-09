@@ -74,7 +74,7 @@ Once downloaded, unzip the folder and place the `data/` directory inside your cl
 <pre>
 BayesianBrainMapping-Templates/
 ├── data/
-│   ├── template_rds/
+│   ├── priors_rds/
 │   └── parcellations_plots/
 │   └── ...
 ├── src/
@@ -171,7 +171,7 @@ if desired (e.g., mean_fd \< 0.2).
 ### 3.2 Filter Unrelated Subjects
 
 Building on the previous step, we use the HCP restricted demographic data to 
-exclude related individuals. This step helps ensure the statistical independence of subjects in the group-level template estimation.
+exclude related individuals. This step helps ensure the statistical independence of subjects in the group-level priors estimation.
 
 For the `combined` list of valid subjects derived in the previous step, we:
 
@@ -195,7 +195,7 @@ in your training data.
 ### 3.3 Filter Subjects to Balance Sex Within Age Groups
 
 In the final step of subject selection, we balance sex across age groups to reduce 
-potential demographic bias in template estimation.
+potential demographic bias in priors estimation.
 
 For the `combined` list of valid and unrelated subjects, we:
 
@@ -211,7 +211,7 @@ The final list of valid subjects is saved in `dir_results` as:
 
 -   `valid_combined_subjects_balanced.csv`
 
--   `valid_combined_subjects_balanced.rds` (used in the template estimation step)
+-   `valid_combined_subjects_balanced.rds` (used in the prior estimation step)
 
 ```{r}
 # This script balances sex within each age group for subjects who passed FD and unrelated filtering.
@@ -276,11 +276,11 @@ view_xifti_surface(
 knitr::include_graphics("yeo17_legend.png")
 ```
 
-## 5. Estimate Templates
+## 5. Estimate Priors
 
-In this step, we estimate group-level statistical templates using the `estimate_prior()` function from the `BayesBrainMap` package.
+In this step, we estimate group-level statistical priors using the `estimate_prior()` function from the `BayesBrainMap` package.
 
-The helper function `estimate_and_export_template()` in the file `5_estimate_template.R` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
+The helper function `estimate_and_export_prior()` in the file `5_estimate_prior.R` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
 
 The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions in both sessions, were unrelated, and were sex-balanced within age groups.
 
@@ -323,10 +323,9 @@ The `nIC` parameter determines which parcellation is used:
 
 -   If `nIC = 15`, `25`, or `50`, the corresponding HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.) is used from the `data/` folder. These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
 
-Templates are saved as `.rds` files.
-For GICA-based runs, additional outputs are exported using `export_template()`.
+Priors are saved as `.rds` files.
 
-In total, we estimate 8 templates varying the parcellation type and GSR inclusion:
+In total, we estimate 8 priors varying the parcellation type and GSR inclusion:
 
 -   GICA parcellation with 15 components: GSR = TRUE / FALSE
 
@@ -337,64 +336,40 @@ In total, we estimate 8 templates varying the parcellation type and GSR inclusio
 -   Yeo 17-network parcellation: GSR = TRUE / FALSE
 
 ```{r}
-# This script defines the `estimate_and_export_template()` function to estimate and save functional connectivity priors.
+# This script defines the `estimate_and_export_prior()` function to estimate and save functional connectivity priors.
 # It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, with or without global signal regression (GSR).
-# For templates using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and truncates each scan to approximately 10 minutes.
+# For priors using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and truncates each scan to approximately 10 minutes.
 # Outputs:
-# - Template `.rds` file saved in `dir_results`
+# - Priors `.rds` file saved in `dir_results`
 
-# source("5_estimate_template.R")
+# source("5_estimate_prior.R")
 ```
 
 ## 5.1 Example Run on 2 subjects
 
 Running `estimate_prior()` on the full `"combined"` subject list (~350 subjects) takes approximately 27 hours and uses 135 GB of memory.
-These templates were estimated on Quartz, a high-performance computing cluster.
 
-To illustrate the process, we demonstrate a minimal example using 2 subjects, with:
+```{r warning=FALSE eval=FALSE}
+# For detailed parameter descriptions, run: ?estimate_prior
 
--   The GICA 15-component parcellation
-
--   GSR = TRUE
-
--   REST1 session from both LR and RL encodings
-
-```{r warning=FALSE}
-# test_subjects <- c("100307", "100206")
-#
-# BOLD_paths1 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-# BOLD_paths2 <- file.path("~/Desktop/", test_subjects, "rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii")
-# 
-# T_total <- floor(600 / TR_HCP)
-# T_scrub_start <- T_total + 1
-# scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
-# scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
-# scrub <- list(scrub_BOLD1, scrub_BOLD2)
-#
-# GICA <- read_cifti(file.path(dir_data, "GICA_15IC.dscalar.nii"))
-# 
-# template <- estimate_prior(
-#   BOLD = BOLD_paths1,
-#   BOLD2 = BOLD_paths2,
-#   template = GICA,
-#   GSR = TRUE,
-#   TR = 0.72,
-#   hpf = 0.01,
-#   Q2 = 0,
-#   Q2_max = NULL,
-#   verbose = TRUE,
-#   drop_first = 15,
-#   scrub = scrub
-# )
+estimate_prior(
+  BOLD = BOLD_paths1,         # REST1 LR scans (list of file paths)
+  BOLD2 = BOLD_paths2,        # REST2 LR scans (same subjects/order as BOLD)
+  template = GICA,            # GICA 15-component parcellation (CIFTI dscalar file path)
+  GSR = TRUE,                 # Apply global signal regression
+  TR = 0.72,                  # Repetition time in seconds
+  hpf = 0.01,                 # High-pass filter cutoff in Hz
+  Q2 = 0,                     # No nuisance IC denoising
+  drop_first = 15,            # Drop first 15 volumes
+  scrub = scrub,              # Timepoints to scrub (list format)
+  verbose = TRUE              # Print progress updates
+)
 ```
-
-Note: This example is for demonstration purpose only.
-Estimating templates with so few subjects may produce unstable results, but it is useful for visualization, debugging, and understanding the pipeline.
 
 ## 6. Visualization
 
-In this section, we visualize both the parcellation maps and the template outputs (mean and variance) for each parcellation scheme used in the study: Yeo17, 15 IC, 25 IC, and 50 IC.
-We also visualize their corresponding functional connectivity (FC) templates.
+In this section, we visualize both the parcellation maps and the priors outputs (mean and variance) for each parcellation scheme used in the study: Yeo17, 15 IC, 25 IC, and 50 IC.
+We also visualize their corresponding functional connectivity (FC) priors.
 
 ### 6.1 Generate and Save Parcellation Visualizations
 
@@ -427,11 +402,11 @@ The resulting images are saved in the following folders:
 
 Each pair of files corresponds to a specific ICA component and captures its spatial map across brain regions.
 
-### 6.2 Visualize Template ICA Components
+### 6.2 Visualize Prior Components
 
-Script: `6_visualization_template.R`
+Script: `6_visualization_prior.R`
 
-This script loads each estimated template file from `template_rds/` and plots both the mean and standard deviation components for all independent components (ICs).
+This script loads each estimated prior file from `priors_rds/` and plots both the mean and standard deviation components for all independent components (ICs).
 
 For each parcellation type, we display:
 
@@ -444,20 +419,20 @@ For each parcellation type, we display:
 All images are organized into folders by number of ICs and GSR setting, e.g.:
 
 ```         
-data/templates/15IC/GSR=F/
+data/priors_plots/combined/15IC/GSR=F/
 
-data/templates/25IC/GSR=T/
+data/priors_plots/combined/25IC/GSR=T/
 
-data/templates/50IC/GSR=F/
+data/priors_plots/combined/50IC/GSR=F/
 
-data/templates/yeo17/GSR=T/
+data/priors_plots/combined/Yeo17/GSR=T/
 ```
 
 These visualizations provide a detailed look at the spatial distribution and variability of each ICA component across the brain.
 
-### 6.3 Visual Summary of Templates
+### 6.3 Visual Summary of Priors
 
-In this section, we present a comparative visual summary of the estimated group-level templates.
+In this section, we present a comparative visual summary of the estimated group-level priors.
 
 For each parcellation type Yeo17, 15 ICs, 25 ICs, and 50 IC, we display:
 
@@ -475,7 +450,7 @@ All images were generated using the scripts:
 
 -   `9_visualization_GICAparcellations.R`
 
--   `6_visualization_template.R`
+-   `6_visualization_prior.R`
 
 #### 6.3.1 15 ICs
 
@@ -485,11 +460,11 @@ For the 15 IC parcellation, we show visualizations of the first and last compone
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC15.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC1_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC15_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC1_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC15_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC1_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC15_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC1_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "template_combined_15ICs_GSRT_IC15_sd.png"))
 ```
 
 #### 6.3.2 25 ICs
@@ -500,11 +475,11 @@ For the 25 IC parcellation, we show visualizations of the first and last compone
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC25.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC1_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC25_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC1_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC25_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC1_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC25_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC1_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "template_combined_25ICs_GSRT_IC25_sd.png"))
 ```
 
 #### 6.3.3 50 ICs
@@ -515,11 +490,11 @@ For the 50 IC parcellation, we show visualizations of the first and last compone
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC50.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC1_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC50_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC1_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC50_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC1_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC50_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC1_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "template_combined_50ICs_GSRT_IC50_sd.png"))
 ```
 
 #### 6.3.4 Yeo17
@@ -530,92 +505,92 @@ For the Yeo17 parcellation, we show visualizations of the two main networks (`De
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DorsAttnA.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DefaultA_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DorsAttnA_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DefaultA_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DorsAttnA_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DefaultA_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DorsAttnA_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DefaultA_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "template_combined_yeo17_GSRT_DorsAttnA_sd.png"))
 ```
 
-### 6.4 Visualize Template Functional Connectivity
+### 6.4 Visualize Functional Connectivity Priors
 
 Script: `7_visualization_FC.R`
 
-This step visualizes the Functional Connectivity (FC) template for each ICA model using both the Cholesky and Inverse-Wishart parameterizations. For each group-level template in `template_rds/`, we compute and plot:
+This step visualizes the Functional Connectivity (FC) prior for each ICA model using both the Cholesky and Inverse-Wishart parameterizations. For each group-level prior in `priors_rds/`, we compute and plot:
 
 - Mean FC matrix (off-diagonal values only)
 
 - Standard deviation of FC estimates (from the variance matrix)
 
-For each template, the following outputs are saved in the `data/template_plots/combined/FC` folder:
+For each prior, the following outputs are saved in the `data/priors_plots/combined/FC` folder:
 
-#### PDF files (2 per template)
+#### PDF files (2 per prior)
 
-- `[template_name]_FC_Cholesky.pdf`
+- `[prior_name]_FC_Cholesky.pdf`
 
-- `[template_name]_FC_InverseWishart.pdf`
+- `[prior_name]_FC_InverseWishart.pdf`
 
 Each PDF includes:
 
-- FC Template Mean (Page 1)
+- FC Prior Mean (Page 1)
 
-- FC Template Standard Deviation (Page 2)
+- FC Prior Standard Deviation (Page 2)
 
-#### PNG imgaes (4 per template)
+#### PNG imgaes (4 per prior)
 
-- `[template_name]_FC_Cholesky_mean.png`
+- `[prior_name]_FC_Cholesky_mean.png`
 
-- `[template_name]_FC_Cholesky_sd.png`
+- `[prior_name]_FC_Cholesky_sd.png`
 
-- `[template_name]_FC_InverseWishart_mean.png`
+- `[prior_name]_FC_InverseWishart_mean.png`
 
-- `[template_name]_FC_InverseWishart_sd.png`
+- `[prior_name]_FC_InverseWishart_sd.png`
 
-These visualizations allow for a direct comparison of spatial FC structure and uncertainty across templates and estimation methods.
+These visualizations allow for a direct comparison of spatial FC structure and uncertainty across priors and estimation methods.
 
 #### 6.4.1 15 ICs
 
 ```{r fig.show='hold', out.width='48%'}
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_InverseWishart_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_15ICs_GSRT_FC_InverseWishart_sd.png"))
 ```
 
 #### 6.4.2 25 ICs
 
 ```{r fig.show='hold', out.width='48%'}
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_InverseWishart_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_25ICs_GSRT_FC_InverseWishart_sd.png"))
 ```
 
 #### 6.4.3 50 ICs
 
 ```{r fig.show='hold', out.width='48%'}
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_InverseWishart_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_50ICs_GSRT_FC_InverseWishart_sd.png"))
 ```
 
 #### 6.4.4 Yeo17
 
 ```{r fig.show='hold', out.width='48%'}
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "template_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "template_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
 ```
 
 ## 7. Individual Analysis Example
 
-example on how to use the templates TEMAPLATE ICA VISUALIZATION
+example on how to use the priors TEMAPLATE ICA VISUALIZATION
 - lets pick one - 15 ic, gsr true, combined list
 - engagements
 - BrainMap

@@ -1,7 +1,3 @@
-# Need to calculate for each subject, each session, and each encoding the FD (using fMRIscrub)
-# The mean FD and time is computed for each session individual for one encoding, needs to be for both sessions <0.1 and time >10 min in order to keep the subject for that enconding
-# We are going to do one template for LR, another for RL, and another for combined (need a total of 3 list of valid subjects)
-
 for (subject in subject_ids) {
     for (encoding in c("LR", "RL")) {
 
