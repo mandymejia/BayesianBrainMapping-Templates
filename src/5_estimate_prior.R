@@ -83,7 +83,7 @@ estimate_and_export_prior <- function(
                 hpf = 0.01,
                 Q2 = 0,
                 Q2_max = NULL,
-                verbose = TRUE
+                verbose = TRUE,
                 drop_first = 15,
                 scrub = scrub
                 )
