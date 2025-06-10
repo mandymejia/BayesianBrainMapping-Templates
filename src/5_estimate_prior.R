@@ -84,9 +84,8 @@ estimate_and_export_prior <- function(
                 Q2 = 0,
                 Q2_max = NULL,
                 verbose = TRUE
-                # testing with no scrub and drop_first to see if error persists
-                # drop_first = 15,
-                # scrub = scrub
+                drop_first = 15,
+                scrub = scrub
                 )
 
         # Save file
