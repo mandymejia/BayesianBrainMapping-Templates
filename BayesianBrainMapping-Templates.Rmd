@@ -282,7 +282,17 @@ In this step, we estimate group-level statistical priors using the `estimate_pri
 
 The helper function `estimate_and_export_prior()` in the file `5_estimate_prior.R` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
 
+## 5.1 Subject List and Scan Selection
+
 The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions in both sessions, were unrelated, and were sex-balanced within age groups.
+
+For each subject, we use REST1 sessions from both phase-enconding directions:
+
+-   `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+-   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+## 5.2 Temporal Preprocessing Parameters
 
 To standardize scan duration and improve data quality, we apply both initial volume dropping and temporal truncation using parameters handled directly by the `estimate_prior()` function from the `BayesBrainMap` package.
 
@@ -294,17 +304,17 @@ Specifically:
 
 Given the HCP TR of 0.72 seconds, 10 minutes corresponds to:
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 T_total <- floor(600 / TR_HCP) # 8330
 ```
 
 To define the volumes to scrub (i.e., exclude beyond 10 minutes), we compute:
 
-```{r}
-# T_scrub_start <- T_total + 1
-# scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
-# scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
-# scrub <- list(scrub_BOLD1, scrub_BOLD2)
+```{r warning=FALSE, eval=FALSE}
+T_scrub_start <- T_total + 1
+scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
+scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
+scrub <- list(scrub_BOLD1, scrub_BOLD2)
 ```
 
 Because `drop_first = 15` removes frames before truncation, the final retained time series per scan will be slightly shorter than 10 minutes. Approximately:
@@ -313,13 +323,9 @@ Because `drop_first = 15` removes frames before truncation, the final retained t
 (833 - 15) * 0.72 = ~589 seconds (~9.8 minutes)
 ```
 
-For these subjects, we include REST1 sessions only, but from both encodings:
+## 5.3 Parcellation Choices
 
--   `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
-
--   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
-
-The `nIC` parameter determines which parcellation is used:
+The `nIC` parameter is passed to the wrapper function `estimate_and_export_prior()`, which uses it to select the appropriate parcellation file to use as input for template in the  `estimate_prior()` function.
 
 -   If `nIC = 15`, `25`, or `50`, the corresponding HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.) is used from the `data/` folder. These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
 
@@ -335,21 +341,21 @@ In total, we estimate 8 priors varying the parcellation type and GSR inclusion:
 
 -   Yeo 17-network parcellation: GSR = TRUE / FALSE
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # This script defines the `estimate_and_export_prior()` function to estimate and save functional connectivity priors.
 # It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, with or without global signal regression (GSR).
 # For priors using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and truncates each scan to approximately 10 minutes.
 # Outputs:
 # - Priors `.rds` file saved in `dir_results`
 
-# source("5_estimate_prior.R")
+source("5_estimate_prior.R")
 ```
 
-## 5.1 Example Run on 2 subjects
+## 5.4 Example Usage
 
 Running `estimate_prior()` on the full `"combined"` subject list (~350 subjects) takes approximately 27 hours and uses 135 GB of memory.
 
-```{r warning=FALSE eval=FALSE}
+```{r warning=FALSE, eval=FALSE}
 # For detailed parameter descriptions, run: ?estimate_prior
 
 estimate_prior(
