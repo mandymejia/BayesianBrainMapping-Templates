@@ -18,27 +18,27 @@ library(viridis)         # version 0.6.5
 library(BayesBrainMap)   # version: 0.11.0
 
 # Set CIFTI Workbench path
-wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
+# wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"
 # locally
-# wb_path <- "~/Downloads/workbench"
+wb_path <- "~/Downloads/workbench"
 ciftiTools.setOption("wb_path", wb_path) 
 
 # Set up paths
-dir_project <- "/N/u/ndasilv/Quartz/Documents/GitHub/BayesianBrainMapping-Templates"
+# dir_project <- "/N/u/ndasilv/Quartz/Documents/GitHub/BayesianBrainMapping-Templates"
 # locally
-# dir_project <- "~/Documents/StatMIND/BayesianBrainMapping-Templates"
+dir_project <- "~/Documents/StatMIND/BayesianBrainMapping-Templates"
 dir_HCP <- "/N/project/hcp_dcwan"
 dir_results <- "/N/project/brain_prediction"
 dir_personal <- "/N/u/ndasilv/Quartz"
 dir_data <- file.path(dir_project, "data")
-HCP_unrestricted_fname <- file.path(dir_project, "data", "unrestricted_HCP_demographics.csv")
+# HCP_unrestricted_fname <- file.path(dir_project, "data", "unrestricted_HCP_demographics.csv")
 # locally
-# HCP_unrestricted_fname <- file.path(dir_data, "unrestricted_HCP_demographics.csv")
-HCP_restricted_fname <- file.path(dir_personal, "Downloads", "RESTRICTED_noheliadasilva_4_25_2025_8_33_58.csv")
+HCP_unrestricted_fname <- file.path(dir_data, "unrestricted_HCP_demographics.csv")
+# HCP_restricted_fname <- file.path(dir_personal, "Downloads", "RESTRICTED_noheliadasilva_4_25_2025_8_33_58.csv")
 
 # Read CSV
 HCP_unrestricted <- read.csv(HCP_unrestricted_fname)
-HCP_restricted <- read.csv(HCP_restricted_fname)
+# HCP_restricted <- read.csv(HCP_restricted_fname)
 
 # All subject IDS
 subject_ids <- HCP_unrestricted$Subject

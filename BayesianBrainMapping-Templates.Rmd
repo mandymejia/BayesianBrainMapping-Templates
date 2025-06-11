@@ -60,9 +60,9 @@ For the choice of group-level network maps, we provide several options:
 
 To reproduce this workflow, first clone the repository to your local machine or cluster:
 
-```{r}
-# git clone https://github.com/mandymejia/BayesianBrainMapping-Templates.git
-# cd BayesianBrainMapping-Templates
+```{r warning=FALSE, eval=FALSE}
+git clone https://github.com/mandymejia/BayesianBrainMapping-Templates.git
+cd BayesianBrainMapping-Templates
 ```
 
 Next, download the required `data/` folder from the following OSF link:
@@ -103,7 +103,7 @@ the following variables to match your local or cluster environment:
 
 -   `wb_path` (location of the CIFTI Workbench on your system)
 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r warning=FALSE, eval=FALSE}
 github_repo_dir <- getwd()
 src_dir <- file.path(github_repo_dir, "src")
 source(file.path(src_dir, "0_setup.R"))
@@ -129,7 +129,7 @@ A volume is considered valid if it passes an FD threshold, and a subject is reta
 The final subject list includes only those who passed the filtering criteria in both LR and RL encodings and in both visits (REST1 and REST2). This list is referred to as the `combined` 
 list and is the one used throughout this project.
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # This script filters subjects based on motion using framewise displacement (FD) from fMRIscrub.
 # For each subject, encoding (LR/RL), and session (REST1/REST2), it computes FD and valid scan time after excluding high-motion volumes.
 # Subjects with ≥10 minutes of valid data in both sessions are retained.
@@ -137,7 +137,7 @@ list and is the one used throughout this project.
 # - Valid subject lists for LR, RL, and combined encodings (intersection)
 # - FD summary per subject/session/encoding
 
-# source(file.path(src_dir,"1_fd_time_filtering.R")) 
+source(file.path(src_dir,"1_fd_time_filtering.R")) 
 ```
 
 During this step, an FD summary table is generated with the following columns:
@@ -154,7 +154,7 @@ During this step, an FD summary table is generated with the following columns:
 
 #### Preview of FD Summary Table
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # Read FD summary
 fd_summary <- read.csv(file.path(dir_data, "fd_summary.csv"))
 
@@ -183,13 +183,13 @@ Note: This step requires access to the HCP restricted data. If you do not have a
 you can skip this step, resulting in some related subjects being included
 in your training data.
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # This script filters subjects to retain only unrelated individuals, using Family ID information from the restricted HCP data.
 # For each encoding (LR, RL, combined), it selects one subject per family from the FD-valid lists.
 # Outputs (saved in dir_personal due to restricted data):
 # - Unrelated subject lists for LR, RL, and combined encodings (intersection)
 
-# source(file.path(src_dir,"2_unrelated_filtering.R"))
+source(file.path(src_dir,"2_unrelated_filtering.R"))
 ```
 
 ### 3.3 Filter Subjects to Balance Sex Within Age Groups
@@ -213,14 +213,14 @@ The final list of valid subjects is saved in `dir_results` as:
 
 -   `valid_combined_subjects_balanced.rds` (used in the prior estimation step)
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # This script balances sex within each age group for subjects who passed FD and unrelated filtering.
 # For each encoding (LR, RL, combined), it samples subjects to equalize the number of males and females per age group, unless an age group includes only one gender (in which case no balancing is applied).
 # Uses age and gender information from the unrestricted HCP data.
 # Outputs (saved in dir_personal):
 # - Sex-balanced subject lists for LR, RL, and combined encodings (as .csv and .rds)
 
-# source(file.path(src_dir,"3_balance_age_sex.R"))
+source(file.path(src_dir,"3_balance_age_sex.R"))
 ```
 
 ## 4. Prepare Group-Level Parcellations
@@ -238,20 +238,20 @@ subnetwork identifiers, grouping regions by their main network.
 
 The resulting parcellation is saved as `Yeo17_simplified_mwall.rds`.
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # This script simplifies the Yeo 17-network parcellation by collapsing region labels and masking out the medial wall.
 # It creates a cleaned version of the parcellation suitable for downstream analyses.
 # Output:
 # - Saved as RDS file in dir_data: "Yeo17_simplified_mwall.rds"
 
-# source(file.path(src_dir,"4_parcellations.R"))
+source(file.path(src_dir,"4_parcellations.R"))
 ```
 
 [Mandy is here]
 
 We can visualize the Yeo17 networks and their corresponding labels:
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # Load libraries
 library(ciftiTools)
 library(rgl)
@@ -271,7 +271,7 @@ view_xifti_surface(
 
 ```
 
-```{r}
+```{r warning=FALSE, eval=FALSE}
 # Show legend
 knitr::include_graphics("yeo17_legend.png")
 ```
@@ -462,7 +462,7 @@ All images were generated using the scripts:
 
 For the 15 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 15):
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC15.png"))
 
@@ -477,7 +477,7 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", 
 
 For the 25 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 25):
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC25.png"))
 
@@ -492,7 +492,7 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", 
 
 For the 50 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 50):
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC1.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC50.png"))
 
@@ -507,7 +507,7 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", 
 
 For the Yeo17 parcellation, we show visualizations of the two main networks (`DefaultA` and `DorsAttnA`):
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
 knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DorsAttnA.png"))
 
@@ -556,7 +556,7 @@ These visualizations allow for a direct comparison of spatial FC structure and u
 
 #### 6.4.1 15 ICs
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
 
@@ -566,7 +566,7 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "p
 
 #### 6.4.2 25 ICs
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
 
@@ -576,7 +576,7 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "p
 
 #### 6.4.3 50 ICs
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
 
@@ -586,7 +586,7 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "p
 
 #### 6.4.4 Yeo17
 
-```{r fig.show='hold', out.width='48%'}
+```{r fig.show='hold', out.width='48%', eval=FALSE}
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
 
@@ -594,12 +594,61 @@ knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "p
 knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
 ```
 
-## 7. Individual Analysis Example
+## 7. Using Priors for Individual-Level Brain Mapping
 
-example on how to use the priors TEMAPLATE ICA VISUALIZATION
-- lets pick one - 15 ic, gsr true, combined list
-- engagements
-- BrainMap
+In this section, we demonstrate how to apply the population-level priors estimated in Section 5 to perform subject-level analysis using the `BayesBrainMap` package.
+
+The process involves two steps:
+
+1. Fitting the Bayesian brain mapping model to subject data using a precomputed prior.
+
+2. Identifying regions of significant deviation from the prior mean (i.e., areas of engagement).
+
+This example uses:
+
+- A prior based on 15 independent components (ICs) estimated from the HCP dataset with global signal regression (GSR = TRUE) and the `combined` list of subjects. (as in section 5)
+
+- One subject’s resting-state data in CIFTI format. (HCP specifc one)
+
+Note: To run this example, users must have access to appropriate subject-level fMRI data. In this case, we use HCP subject *****. Users can replace the file path with their own data accordingly.
+
+#### 7.1 Load Subject-Level fMRI Data and Prior 
+
+```{r warning=FALSE, eval=FALSE}
+# Load population prior (15 ICs, GSR = TRUE)
+prior <- readRDS(...)
+
+# Load subject fMRI data (CIFTI format)
+# Replace with your own file path
+BOLD <- ...
+```
+
+The fMRI input must be a CIFTI, NIFTI, or matrix object compatible with the prior.
+
+#### 7.2 Estimate Subject-Level Networks
+
+Once the data is loaded, we fit the Bayesian brain mapping model to obtain individualized functional networks aligned to the prior components:
+
+```{r warning=FALSE, eval=FALSE}
+bMap <- BrainMap(
+  BOLD = BOLD,
+  prior = prior,
+  ...
+  )
+```
+
+#### 7.3 Identify Engagement Maps
+
+```{r warning=FALSE, eval=FALSE}
+eng <- engagements(
+  bMap = bMap,
+  
+  )
+```
+
+#### 7.4 Visualize the Results
+
+
 
 
 
