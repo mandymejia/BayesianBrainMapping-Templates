@@ -61,9 +61,9 @@ estimate_and_export_prior <- function(
                 Q2_max = NULL,
                 verbose = TRUE,
                 inds = inds,
-                brainstructures = c("left", "right")
-                # drop_first = 15,
-                # scrub = scrub
+                brainstructures = c("left", "right"),
+                drop_first = 15,
+                scrub = scrub
                 )
         
 
@@ -83,9 +83,9 @@ estimate_and_export_prior <- function(
                 hpf = 0.01,
                 Q2 = 0,
                 Q2_max = NULL,
-                verbose = TRUE
-                # drop_first = 15,
-                # scrub = scrub
+                verbose = TRUE,
+                drop_first = 15,
+                scrub = scrub
                 )
 
         # Save file
