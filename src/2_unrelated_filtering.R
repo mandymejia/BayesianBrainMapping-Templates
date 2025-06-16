@@ -2,6 +2,10 @@
 # Unrelated subjects (restricted data)
 # Keep only unrelated subjects (different Family ID)
 
+# [TO DO] CHECK THAT THIS FILE EXISTS, OTHERWISE RETURN A WARNING/MESSAGE SAYING WE'RE SKIPPING THIS PART
+# HCP_restricted <- read.csv(HCP_restricted_fname)
+
+
 for (encoding in c("LR", "RL", "combined")) {
   # From restricted data get only the rows that correspond to the valid subject IDs after FD correction
   filtered_restricted <- HCP_restricted[HCP_restricted$Subject %in% get(sprintf("valid_%s_subjects_FD", encoding)), ]

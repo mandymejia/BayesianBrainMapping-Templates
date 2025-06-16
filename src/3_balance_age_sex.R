@@ -4,6 +4,8 @@
 for (encoding in c("LR", "RL", "combined")) {
     # From unrestricted data get only the rows that correspond to the valid subject IDs after FD correction and unrelated filtering
 
+    # [TO DO] FORMALIZE THIS SO IT AUTOMATICALLY CHECKS IF THE RESTRICTED DATA IS AVAILABLE
+  
     # If skipping step 2 (no access to restricted data / not filtering by unrelated):
     # filtered_unrestricted <- HCP_unrestricted[HCP_unrestricted$Subject %in% get(sprintf("valid_%s_subjects_FD", encoding)), ]
     # Otherwise, if filtering to only unrelated subjects (requires restricted data):
@@ -36,6 +38,8 @@ for (encoding in c("LR", "RL", "combined")) {
         valid_combined_subjects_balanced <- subject_ids_balanced
     }  
 }
+
+# [TO DO] EVERYWHERE, REPLACE DIR_PERSONAL WITH DIR_GITHUB_DATA (OR WHATEVER)
 
 # Save intermediate data in personal directory (due to restricted data)
 write.csv(data.frame(subject_id=valid_LR_subjects_balanced), file = file.path(dir_personal, "valid_LR_subjects_balanced.csv"), row.names = FALSE)
