@@ -15,7 +15,7 @@ library(templateICAr)    # version 0.9.1
 library(fMRIscrub)       # version 0.14.7
 library(fMRItools)       # version 0.5.3
 library(viridis)         # version 0.6.5
-library(BayesBrainMap)   # version: 0.11.0
+library(BayesBrainMap)   # version: 0.11.0 ###TODO: ANOTHER ONE? 
 
 # Set CIFTI Workbench path
 # wb_path <- "/N/u/ndasilv/Quartz/Downloads/workbench"

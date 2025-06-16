@@ -1,10 +1,13 @@
 ---
-title: "BayesianBrainMapping-Templates"
-author: "authors"
+title: "Individualized functional topographic mapping with the BayesBrainMap R package and Human Connectome Project-derived priors"
+author: "Nohelia Da Silva, Damon D. Pham, Ellyn Butler, Amanda F. Mejia"
 date: "2025-05-07"
 output:
+  pdf_document:
+    latex_engine: xelatex
   html_document: default
-  pdf_document: default
+header-includes:
+  - \usepackage{pifont}
 editor_options:
   markdown:
     wrap: sentence
@@ -16,7 +19,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 1. Introduction
 
-Bayesian brain mapping BBM is a technique for producing individualized functional brain
+```{r setup-env, include=FALSE}
+github_repo_dir <- getwd()
+src_dir <- file.path(github_repo_dir, "src")
+source(file.path(src_dir, "0_setup.R"))
+```
+
+Bayesian brain mapping (BBM) is a technique for producing individualized functional brain
 topographic maps from existing group-level network maps. Group-level network maps 
 are commonly group ICA maps or group average parcellations, but other types of 
 networks maps such as non-negative matrix factorization and PROFUMO can be used. 
@@ -32,13 +41,10 @@ individual-level analysis, it is computationally convenient and has potential cl
 utility.
 
 Once a set of group-level network maps has been chosen, there are two steps to 
-performing BBM.  Both are implemented in the `BayesBrainMap` R package.
+performing BBM.  Both are implemented in the 
+`BayesBrainMap` R package.
 
-- Step 1. Training a population-derived prior (mean and variance) for each network using
-a training dataset.
-
-- Step 2. Fitting the Bayesian Brain Mapping model to fMRI data from an individual subject, 
-using those priors.
+## TODO: ADD DIAGRAM (show progress)
 
 Here, we perform Step 1 using data from the Human Connectome Project (HCP). Specifically,
 we train CIFTI-format Bayesian brain mapping priors using a variety of ICA and 
@@ -56,58 +62,31 @@ For the choice of group-level network maps, we provide several options:
 
 * The 17 Yeo networks (CITE)
 
+```{r, results='asis', echo=FALSE}
+cat('
+\\newcommand{\\Checkmark}{\\ding{51}}
+\\begin{table}[ht]
+\\centering
+\\begin{tabular}{|l|c|c|c|c|}
+\\hline
+\\textbf{Global Signal Regression} & \\multicolumn{3}{c|}{\\textbf{Group ICA}} & \\textbf{Parcellation} \\\\
+\\cline{2-4}
+ & 15 HCP ICs & 25 HCP ICs & 50 HCP ICs & Yeo 17 \\\\
+\\hline
+With GSR & \\Checkmark & \\Checkmark & \\Checkmark & \\Checkmark \\\\
+\\hline
+Without GSR & \\Checkmark & \\Checkmark & \\Checkmark & \\Checkmark \\\\
+\\hline
+\\end{tabular}
+\\caption{Templates used for Bayesian brain mapping.}
+\\label{tab:template-summary}
+\\end{table}
+')
+```
+
 ## 2. Setup
 
-To reproduce this workflow, first clone the repository to your local machine or cluster:
-
-```{r warning=FALSE, eval=FALSE}
-git clone https://github.com/mandymejia/BayesianBrainMapping-Templates.git
-cd BayesianBrainMapping-Templates
-```
-
-Next, download the required `data/` folder from the following OSF link:
-
-[`https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef`](https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef)
-
-Once downloaded, unzip the folder and place the `data/` directory inside your cloned GitHub repository, so the folder structure looks like this:
-
-<pre>
-BayesianBrainMapping-Templates/
-├── data/
-│   ├── priors_rds/
-│   └── parcellations_plots/
-│   └── ...
-├── src/
-│   ├── 0_setup.R
-│   └── 1_fd_time_filtering.R
-|   └── ...
-├── BayesianBrainMapping-Templates.Rmd
-└── ...
-</pre>
-
-This section initializes the environment by loading required packages, setting analysis parameters, and defining directory paths.
-
-**Important:** Before running the workflow, you must review `0_setup.R` and install any
-necessary packages, ensure you have an installation of Connectome Workbench, and update 
-the following variables to match your local or cluster environment:
-
--   `dir_project` (path to the main project folder that contains all code and data (i.e., your local clone of BayesianBrainMapping-Templates))
-
--   `dir_data` (path to the `data/` folder inside the project directory, downloaded from OSF in the previous step)
-
--   `dir_results` (path to the folder where all output files are saved)
-
--   `dir_personal` (path to your personal user directory on the cluster)
-
--   `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
-
--   `wb_path` (location of the CIFTI Workbench on your system)
-
-```{r warning=FALSE, eval=FALSE}
-github_repo_dir <- getwd()
-src_dir <- file.path(github_repo_dir, "src")
-source(file.path(src_dir, "0_setup.R"))
-```
+To reproduce this workflow, first follow the setup process outlined in [Appendix A](#appendix-setup). 
 
 ## 3. Choosing Training Subjects
 
@@ -115,174 +94,27 @@ Before estimating the BBM priors, we first select a high-quality, balanced subje
 sample to ensure reliable, representative priors. Starting from the full HCP sample of
 1206, we apply the following filtering steps:
 
-### 3.1 Filter Subjects by Sufficient fMRI Scan Duration
+1. **Filter Subjects by Sufficient fMRI Scan Duration**
+   
+   See [Appendix B.1](#appendix-filtering-1) and script: `1_fd_time_filtering.R`
 
-We begin by filtering subjects based on the fMRI scan duration after motion scrubbing
-For each subject, and for each session (`REST1`, `REST2`) and encoding direction (`LR`, `RL`), 
-we compute framewise displacement (FD) using the `fMRIscrub` package. We use a lagged
-and filtered version of FD (CITE Pham Less is More and Power/Fair refs therein) 
-appropriate for multiband data. FD is calculated from the `Movement_Regressors.txt` 
-file available in the HCP data for each subject, encoding and session.
+2. **Filter Unrelated Subjects**  
+   
+   See [Appendix B.2](#appendix-filtering-2) and script: `2_unrelated_filtering.R`
 
-A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data.
+3. **Balance sex within age groups**  
+  
+   See [Appendix B.3](#appendix-filtering-3) and script: `3_balance_age_sex.R`
 
-The final subject list includes only those who passed the filtering criteria in both LR and RL encodings and in both visits (REST1 and REST2). This list is referred to as the `combined` 
-list and is the one used throughout this project.
+The resulting subject list (`valid_combined_subjects_balanced.rds`) is used throughout the rest of the analysis.
 
-```{r warning=FALSE, eval=FALSE}
-# This script filters subjects based on motion using framewise displacement (FD) from fMRIscrub.
-# For each subject, encoding (LR/RL), and session (REST1/REST2), it computes FD and valid scan time after excluding high-motion volumes.
-# Subjects with ≥10 minutes of valid data in both sessions are retained.
-# Outputs (saved in dir_results):
-# - Valid subject lists for LR, RL, and combined encodings (intersection)
-# - FD summary per subject/session/encoding
-
-source(file.path(src_dir,"1_fd_time_filtering.R")) 
-```
-
-During this step, an FD summary table is generated with the following columns:
-
--   subject: HCP subject ID
-
--   session: REST1 or REST2
-
--   encoding: LR or RL
-
--   mean_fd: mean framewise displacement 
-
--   valid_time_sec: total duration of valid data in seconds
-
-#### Preview of FD Summary Table
-
-```{r warning=FALSE, eval=FALSE}
-# Read FD summary
-fd_summary <- read.csv(file.path(dir_data, "fd_summary.csv"))
-
-# Display the first 4 rows
-knitr::kable(head(fd_summary, 4), caption = "First rows of FD summary table")
-```
-
-As shown above, subject 100206 qualifies for further analysis because each of the four sessions (REST1/REST2 × LR/RL) contains at least 600 seconds of valid data.
-
-The script is currently designed to filter based on valid time only, but it can 
-be easily adapted to apply additional constraints such as maximum mean FD thresholds 
-if desired (e.g., mean_fd \< 0.2).
-
-### 3.2 Filter Unrelated Subjects
-
-Building on the previous step, we use the HCP restricted demographic data to 
-exclude related individuals. This step helps ensure the statistical independence of subjects in the group-level priors estimation.
-
-For the `combined` list of valid subjects derived in the previous step, we:
-
-1.   Subset the HCP restricted demographics to include only those subjects with at least 10 minutes remaining after scrubbing.
-
-2.   Filter by `Family_ID` to retain a single individual per family.
-
-Note: This step requires access to the HCP restricted data. If you do not have access, 
-you can skip this step, resulting in some related subjects being included
-in your training data.
-
-```{r warning=FALSE, eval=FALSE}
-# This script filters subjects to retain only unrelated individuals, using Family ID information from the restricted HCP data.
-# For each encoding (LR, RL, combined), it selects one subject per family from the FD-valid lists.
-# Outputs (saved in dir_personal due to restricted data):
-# - Unrelated subject lists for LR, RL, and combined encodings (intersection)
-
-source(file.path(src_dir,"2_unrelated_filtering.R"))
-```
-
-### 3.3 Filter Subjects to Balance Sex Within Age Groups
-
-In the final step of subject selection, we balance sex across age groups to reduce 
-potential demographic bias in priors estimation.
-
-For the `combined` list of valid and unrelated subjects, we:
-
--   Subset the HCP unrestricted demographics to include only those subjects.
-
--   Split subjects by age group and examine the sex distribution within each group.
-
--   If both sexes are present but imbalanced, we randomly remove subjects from the overrepresented group to achieve balance.
-
-Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_combined_subjects_FD` instead of `valid_combined_subjects_unrelated`.
-
-The final list of valid subjects is saved in `dir_results` as:
-
--   `valid_combined_subjects_balanced.csv`
-
--   `valid_combined_subjects_balanced.rds` (used in the prior estimation step)
-
-```{r warning=FALSE, eval=FALSE}
-# This script balances sex within each age group for subjects who passed FD and unrelated filtering.
-# For each encoding (LR, RL, combined), it samples subjects to equalize the number of males and females per age group, unless an age group includes only one gender (in which case no balancing is applied).
-# Uses age and gender information from the unrestricted HCP data.
-# Outputs (saved in dir_personal):
-# - Sex-balanced subject lists for LR, RL, and combined encodings (as .csv and .rds)
-
-source(file.path(src_dir,"3_balance_age_sex.R"))
-```
-
-## 4. Prepare Group-Level Parcellations
-
-In this step, we load and preprocess a group-level cortical parcellation to be 
-used as the template to estimate the priors in the next step. Specifically, we 
-use the Yeo 17-network parcellation (`Yeo_17`) and perform the following operations:
-
--   Simplify the labels by collapsing hemisphere-specific naming and removing 
-subnetwork identifiers, grouping regions by their main network.
-
--   Create a new `dlabel` object that maps each vertex to its corresponding network.
-
--   Mask out the medial wall to exclude it from analysis.
-
-The resulting parcellation is saved as `Yeo17_simplified_mwall.rds`.
-
-```{r warning=FALSE, eval=FALSE}
-# This script simplifies the Yeo 17-network parcellation by collapsing region labels and masking out the medial wall.
-# It creates a cleaned version of the parcellation suitable for downstream analyses.
-# Output:
-# - Saved as RDS file in dir_data: "Yeo17_simplified_mwall.rds"
-
-source(file.path(src_dir,"4_parcellations.R"))
-```
-
-[Mandy is here]
-
-We can visualize the Yeo17 networks and their corresponding labels:
-
-```{r warning=FALSE, eval=FALSE}
-# Load libraries
-library(ciftiTools)
-library(rgl)
-rgl::setupKnitr()
-
-# Load the parcellation
-yeo17 <- readRDS(file.path(dir_data, "Yeo17_simplified_mwall.rds"))
-yeo17 <- add_surf(yeo17)
-
-view_xifti_surface(
-  xifti = yeo17,
-  widget = TRUE,
-  title = "Yeo17 Network Parcellation",
-  legend_ncol = 6,
-  legend_fname = "yeo17_legend.png",
-)
-
-```
-
-```{r warning=FALSE, eval=FALSE}
-# Show legend
-knitr::include_graphics("yeo17_legend.png")
-```
-
-## 5. Estimate Priors
+## 4. Step 1: Estimate Priors using `estimate_prior()`
 
 In this step, we estimate group-level statistical priors using the `estimate_prior()` function from the `BayesBrainMap` package.
 
 The helper function `estimate_and_export_prior()` in the file `5_estimate_prior.R` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
 
-## 5.1 Subject List and Scan Selection
+## 4.1 Subject List and Scan Selection
 
 The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions in both sessions, were unrelated, and were sex-balanced within age groups.
 
@@ -292,7 +124,7 @@ For each subject, we use REST1 sessions from both phase-enconding directions:
 
 -   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
-## 5.2 Temporal Preprocessing Parameters
+## 4.2 Temporal Preprocessing Parameters
 
 To standardize scan duration and improve data quality, we apply both initial volume dropping and temporal truncation using parameters handled directly by the `estimate_prior()` function from the `BayesBrainMap` package.
 
@@ -302,97 +134,64 @@ Specifically:
 
 - `scrub` defines volumes to exclude after a target duration. In our case, we truncate data to the first 10 minutes (600 seconds), excluding any volumes beyond that point.
 
-Given the HCP TR of 0.72 seconds, 10 minutes corresponds to:
+See [Appendix C](#appendix-scrub) for more details.
+
+## 4.3 Parcellation Choices
+
+We consider two types of group-level parcellations for estimating priors:
+
+- HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.), available in the `data/` folder. These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
+
+- Yeo17 parcellation (CITE). For details on how this parcellation was processed and simplified for use, see [Appendix D](#appendix-parcellations).
+
+Each of these parcellations was used to estimate priors with and without global signal regression (GSR), resulting in eight total priors saved as .rds files. See Table \hyperref[tab:template-summary]{Table~\ref*{tab:template-summary}} for a summary of the parcellations and GSR combinations.
 
 ```{r warning=FALSE, eval=FALSE}
-T_total <- floor(600 / TR_HCP) # 8330
-```
-
-To define the volumes to scrub (i.e., exclude beyond 10 minutes), we compute:
-
-```{r warning=FALSE, eval=FALSE}
-T_scrub_start <- T_total + 1
-scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
-scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
-scrub <- list(scrub_BOLD1, scrub_BOLD2)
-```
-
-Because `drop_first = 15` removes frames before truncation, the final retained time series per scan will be slightly shorter than 10 minutes. Approximately:
-
-```
-(833 - 15) * 0.72 = ~589 seconds (~9.8 minutes)
-```
-
-## 5.3 Parcellation Choices
-
-The `nIC` parameter is passed to the wrapper function `estimate_and_export_prior()`, which uses it to select the appropriate parcellation file to use as input for template in the  `estimate_prior()` function.
-
--   If `nIC = 15`, `25`, or `50`, the corresponding HCP GICA parcellation (`GICA_15IC.dscalar.nii`, etc.) is used from the `data/` folder. These files were downloaded from the HCP website, specifically from the CIFTI Subject-specific ICA Parcellations dataset for 15-, 25-, 50-, and 100-dimensionalities.
-
-Priors are saved as `.rds` files.
-
-In total, we estimate 8 priors varying the parcellation type and GSR inclusion:
-
--   GICA parcellation with 15 components: GSR = TRUE / FALSE
-
--   GICA parcellation with 25 components: GSR = TRUE / FALSE
-
--   GICA parcellation with 50 components: GSR = TRUE / FALSE
-
--   Yeo 17-network parcellation: GSR = TRUE / FALSE
-
-```{r warning=FALSE, eval=FALSE}
-# This script defines the `estimate_and_export_prior()` function to estimate and save functional connectivity priors.
-# It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, with or without global signal regression (GSR).
-# For priors using the "combined" subject list, it loads REST1-LR and REST1-RL scans for each subject, drops the first 15 volumes, and truncates each scan to approximately 10 minutes.
+# This script estimates and saves functional connectivity priors 
+# for both spatial topography and connectivity.
+# It supports both GICA-based (15/25/50 ICs) and Yeo17 parcellations, 
+# with or without global signal regression (GSR).
+# For priors using the "combined" subject list, it loads REST1-LR and REST1-RL
+# scans for each subject, 
+# drops the first 15 volumes, and truncates each scan to approximately 10 minutes.
 # Outputs:
 # - Priors `.rds` file saved in `dir_results`
 
 source("5_estimate_prior.R")
 ```
 
-## 5.4 Example Usage
+## 4.4 Example Usage
 
 Running `estimate_prior()` on the full `"combined"` subject list (~350 subjects) takes approximately 27 hours and uses 135 GB of memory.
 
-```{r warning=FALSE, eval=FALSE}
-# For detailed parameter descriptions, run: ?estimate_prior
+For an example of how to run `estimate_prior()` and all relevant parameters, see [Appendix E](#appendix-example).
 
-estimate_prior(
-  BOLD = BOLD_paths1,         # REST1 LR scans (list of file paths)
-  BOLD2 = BOLD_paths2,        # REST2 LR scans (same subjects/order as BOLD)
-  template = GICA,            # GICA 15-component parcellation (CIFTI dscalar file path)
-  GSR = TRUE,                 # Apply global signal regression
-  TR = 0.72,                  # Repetition time in seconds
-  hpf = 0.01,                 # High-pass filter cutoff in Hz
-  Q2 = 0,                     # No nuisance IC denoising
-  drop_first = 15,            # Drop first 15 volumes
-  scrub = scrub,              # Timepoints to scrub (list format)
-  verbose = TRUE              # Print progress updates
-)
-```
-
-## 6. Visualization
+## 5. Visualization
 
 In this section, we visualize both the parcellation maps and the priors outputs (mean and variance) for each parcellation scheme used in the study: Yeo17, 15 IC, 25 IC, and 50 IC.
+
 We also visualize their corresponding functional connectivity (FC) priors.
 
-### 6.1 Generate and Save Parcellation Visualizations
+### 5.1 Generate and Save Parcellation Visualizations
 
-#### 6.1.1 Yeo17 parcellation
+#### 5.1.1 Yeo17 parcellation
 
-Script: `8_visualization_Yeo17parcellations.R`
+**Script:** `8_visualization_Yeo17parcellations.R`
 
 This script creates one PNG image per parcel (17 in total), where only the selected parcel is colored and all others are white.
-The parcellation used is `Yeo17_simplified_mwall.rds`, created in Step 4.
+The parcellation used is Yeo17, created in [Appendix D](#appendix-parcellations).
 
 Images are saved in `data/parcellations_plots/Yeo17`.
 
-#### 6.1.2 GICA Parcellations (15, 25, 50 ICs)
+**TODO: add in appendix visualizations?**
+
+#### 5.1.2 GICA Parcellations (15, 25, 50 ICs)
+
+\leavevmode
 
 Script: `9_visualization_GICAparcellations.R`
 
-This script defines a helper function that loops over all independent components for each parcellation dimensionality (`nIC = 15, 25, 50`) and generates two images per component:
+This script loops over all independent components for each parcellation dimensionality (`nIC = 15, 25, 50`) and generates two images per component:
 
 -   A cortical surface map (e.g., `GICA_15_IC1.png`)
 
@@ -408,19 +207,15 @@ The resulting images are saved in the following folders:
 
 Each pair of files corresponds to a specific ICA component and captures its spatial map across brain regions.
 
-### 6.2 Visualize Prior Components
+**TODO: add in appendix visualizations?**
+
+### 5.2 Visualize Prior Components
+
+\leavevmode
 
 Script: `6_visualization_prior.R`
 
 This script loads each estimated prior file from `priors_rds/` and plots both the mean and standard deviation components for all independent components (ICs).
-
-For each parcellation type, we display:
-
--   The first and last parcellation map
-
--   The first and last mean map
-
--   The first and last SD map
 
 All images are organized into folders by number of ICs and GSR setting, e.g.:
 
@@ -434,9 +229,7 @@ data/priors_plots/combined/50IC/GSR=F/
 data/priors_plots/combined/Yeo17/GSR=T/
 ```
 
-These visualizations provide a detailed look at the spatial distribution and variability of each ICA component across the brain.
-
-### 6.3 Visual Summary of Priors
+### 5.3 Visual Summary of Priors
 
 In this section, we present a comparative visual summary of the estimated group-level priors.
 
@@ -458,67 +251,111 @@ All images were generated using the scripts:
 
 -   `6_visualization_prior.R`
 
-#### 6.3.1 15 ICs
+#### 5.3.1 15 ICs
 
-For the 15 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 15):
+\leavevmode
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC1.png"))
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "15IC", "GICA_15_IC15.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "15IC", "GICA_15_IC1.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "15IC", "GICA_15_IC15.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "prior_combined_15ICs_GSRT_IC1_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "prior_combined_15ICs_GSRT_IC15_mean.png"))
+knitr::include_graphics(file.path(
+  dir_data, "priors_plots", "combined", "15IC", "GSR=T", 
+  "template_combined_15ICs_GSRT_IC1_mean.png"))
+knitr::include_graphics(file.path(
+  dir_data, "priors_plots", "combined", "15IC", "GSR=T", 
+  "template_combined_15ICs_GSRT_IC15_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "prior_combined_15ICs_GSRT_IC1_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "15IC", "GSR=T", "prior_combined_15ICs_GSRT_IC15_sd.png"))
+knitr::include_graphics(file.path(
+  dir_data, "priors_plots", "combined", "15IC", "GSR=T", 
+  "template_combined_15ICs_GSRT_IC1_sd.png"))
+knitr::include_graphics(file.path(
+  dir_data, "priors_plots", "combined", "15IC", "GSR=T", 
+  "template_combined_15ICs_GSRT_IC15_sd.png"))
 ```
 
-#### 6.3.2 25 ICs
+#### 5.3.2 25 ICs
 
-For the 25 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 25):
+\leavevmode
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC1.png"))
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "25IC", "GICA_25_IC25.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "25IC", "GICA_25_IC1.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "25IC", "GICA_25_IC25.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "prior_combined_25ICs_GSRT_IC1_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "prior_combined_25ICs_GSRT_IC25_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "25IC", "GSR=T", 
+                                  "template_combined_25ICs_GSRT_IC1_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "25IC", "GSR=T", 
+                                  "template_combined_25ICs_GSRT_IC25_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "prior_combined_25ICs_GSRT_IC1_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "25IC", "GSR=T", "prior_combined_25ICs_GSRT_IC25_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "25IC", "GSR=T", 
+                                  "template_combined_25ICs_GSRT_IC1_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "25IC", "GSR=T", 
+                                  "template_combined_25ICs_GSRT_IC25_sd.png"))
 ```
 
-#### 6.3.3 50 ICs
+#### 5.3.3 50 ICs
 
-For the 50 IC parcellation, we show visualizations of the first and last components (IC 1 and IC 50):
+\leavevmode
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC1.png"))
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "50IC", "GICA_50_IC50.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "50IC", "GICA_50_IC1.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "50IC", "GICA_50_IC50.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "prior_combined_50ICs_GSRT_IC1_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "prior_combined_50ICs_GSRT_IC50_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "50IC", "GSR=T", 
+                                  "template_combined_50ICs_GSRT_IC1_mean.png"))
+knitr::include_graphics(file.path(dir_data,
+                                  "priors_plots", "combined", "50IC", "GSR=T", 
+                                  "template_combined_50ICs_GSRT_IC50_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "prior_combined_50ICs_GSRT_IC1_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "50IC", "GSR=T", "prior_combined_50ICs_GSRT_IC50_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "50IC", "GSR=T", 
+                                  "template_combined_50ICs_GSRT_IC1_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "50IC", "GSR=T", 
+                                  "template_combined_50ICs_GSRT_IC50_sd.png"))
 ```
 
-#### 6.3.4 Yeo17
+#### 5.3.4 Yeo17
+
+\leavevmode
 
 For the Yeo17 parcellation, we show visualizations of the two main networks (`DefaultA` and `DorsAttnA`):
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
-knitr::include_graphics(file.path(dir_data, "parcellations_plots", "Yeo17", "Yeo17_DorsAttnA.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "Yeo17", "Yeo17_DefaultA.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "parcellations_plots", "Yeo17", "Yeo17_DorsAttnA.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "prior_combined_yeo17_GSRT_DefaultA_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "prior_combined_yeo17_GSRT_DorsAttnA_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "Yeo17", "GSR=T", 
+                                  "template_combined_yeo17_GSRT_DefaultA_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "Yeo17", "GSR=T", 
+                                  "template_combined_yeo17_GSRT_DorsAttnA_mean.png"))
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "prior_combined_yeo17_GSRT_DefaultA_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "Yeo17", "GSR=T", "prior_combined_yeo17_GSRT_DorsAttnA_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "Yeo17", "GSR=T", 
+                                  "template_combined_yeo17_GSRT_DefaultA_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "Yeo17", "GSR=T", 
+                                  "template_combined_yeo17_GSRT_DorsAttnA_sd.png"))
 ```
 
-### 6.4 Visualize Functional Connectivity Priors
+### 5.4 Visualize Functional Connectivity Priors
+
+\leavevmode
 
 Script: `7_visualization_FC.R`
 
@@ -554,47 +391,89 @@ Each PDF includes:
 
 These visualizations allow for a direct comparison of spatial FC structure and uncertainty across priors and estimation methods.
 
-#### 6.4.1 15 ICs
+#### 5.4.1 15 ICs
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
+\leavevmode
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_15ICs_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_15ICs_GSRT_FC_InverseWishart_sd.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_15ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_15ICs_GSRT_FC_InverseWishart_sd.png"))
 ```
 
-#### 6.4.2 25 ICs
+#### 5.4.2 25 ICs
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
+\leavevmode
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_25ICs_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_25ICs_GSRT_FC_InverseWishart_sd.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_25ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_25ICs_GSRT_FC_InverseWishart_sd.png"))
 ```
 
-#### 6.4.3 50 ICs
+#### 5.4.3 50 ICs
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
+\leavevmode
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_50ICs_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_50ICs_GSRT_FC_InverseWishart_sd.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_50ICs_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_50ICs_GSRT_FC_InverseWishart_sd.png"))
 ```
 
-#### 6.4.4 Yeo17
+#### 5.4.4 Yeo17
 
-```{r fig.show='hold', out.width='48%', eval=FALSE}
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
+\leavevmode
 
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_Cholesky_sd.png"))
-knitr::include_graphics(file.path(dir_data, "priors_plots", "combined", "FC", "prior_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
+```{r fig.show='hold', out.width='48%', echo=FALSE}
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
+
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_yeo17_GSRT_FC_Cholesky_sd.png"))
+knitr::include_graphics(file.path(dir_data, 
+                                  "priors_plots", "combined", "FC", 
+                                  "template_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
 ```
 
-## 7. Using Priors for Individual-Level Brain Mapping
+## 6. Using Priors for Individual-Level Brain Mapping
+
+ **IN PROGRESS!**
 
 In this section, we demonstrate how to apply the population-level priors estimated in Section 5 to perform subject-level analysis using the `BayesBrainMap` package.
 
@@ -649,21 +528,273 @@ eng <- engagements(
 #### 7.4 Visualize the Results
 
 
+\appendix
 
+## Appendix A: Setup {#appendix-setup}
 
+To reproduce this workflow, first clone the repository to your local machine or cluster:
 
+```{r warning=FALSE, eval=FALSE}
+git clone https://github.com/mandymejia/BayesianBrainMapping-Templates.git
+cd BayesianBrainMapping-Templates
+```
 
+Next, download the required `data/` folder from the following OSF link:
 
+[`https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef`](https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef)
 
+Once downloaded, unzip the folder and place the `data/` directory inside your cloned GitHub repository, so the folder structure looks like this:
 
+<pre>
+BayesianBrainMapping-Templates/
+├── data/
+│   ├── priors_rds/
+│   └── parcellations_plots/
+│   └── ...
+├── src/
+│   ├── 0_setup.R
+│   └── 1_fd_time_filtering.R
+|   └── ...
+├── BayesianBrainMapping-Templates.Rmd
+└── ...
+</pre>
 
+This section initializes the environment by loading required packages, setting analysis parameters, and defining directory paths.
 
+**Important:** Before running the workflow, you must review `0_setup.R` and install any
+necessary packages, ensure you have an installation of Connectome Workbench, and update 
+the following variables to match your local or cluster environment:
 
+-   `dir_project` (path to the main project folder that contains all code and data (i.e., your local clone of BayesianBrainMapping-Templates))
 
+-   `dir_data` (path to the `data/` folder inside the project directory, downloaded from OSF in the previous step)
 
+-   `dir_results` (path to the folder where all output files are saved)
 
+-   `dir_personal` (path to your personal user directory on the cluster)
 
+-   `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
 
+-   `wb_path` (location of the CIFTI Workbench on your system)
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+github_repo_dir <- getwd()
+src_dir <- file.path(github_repo_dir, "src")
+source(file.path(src_dir, "0_setup.R"))
+```
+
+## Appendix B: Subject Filtering
+
+### Appendix B.1: Filter Subjects by Sufficient fMRI Scan Duration {#appendix-filtering-1}
+
+We begin by filtering subjects based on the fMRI scan duration after motion scrubbing
+For each subject, and for each session (`REST1`, `REST2`) and encoding direction (`LR`, `RL`), 
+we compute framewise displacement (FD) using the `fMRIscrub` package. We use a lagged
+and filtered version of FD (CITE Pham Less is More and Power/Fair refs therein) 
+appropriate for multiband data. FD is calculated from the `Movement_Regressors.txt` 
+file available in the HCP data for each subject, encoding and session.
+
+A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data.
+
+The final subject list includes only those who passed the filtering criteria in both LR and RL encodings and in both visits (REST1 and REST2). This list is referred to as the `combined` 
+list and is the one used throughout this project.
+
+```{r warning=FALSE, eval=FALSE}
+# This script filters subjects based on motion using framewise displacement (FD)
+# from fMRIscrub.
+# For each subject, encoding (LR/RL), and session (REST1/REST2), it computes FD 
+# and valid scan
+# time after excluding high-motion volumes.
+# Subjects with ≥10 minutes of valid data in both sessions are retained.
+# Outputs (saved in dir_results):
+# - Valid subject lists for LR, RL, and combined encodings (intersection)
+# - FD summary per subject/session/encoding
+
+source(file.path(src_dir,"1_fd_time_filtering.R")) 
+```
+
+During this step, an FD summary table is generated with the following columns:
+
+-   subject: HCP subject ID
+
+-   session: REST1 or REST2
+
+-   encoding: LR or RL
+
+-   mean_fd: mean framewise displacement 
+
+-   valid_time_sec: total duration of valid data in seconds
+
+#### Preview of FD Summary Table
+
+```{r warning=FALSE}
+# Read FD summary
+fd_summary <- read.csv(file.path(dir_data, "fd_summary.csv"))
+
+# Display the first 4 rows
+knitr::kable(head(fd_summary, 4), caption = "First rows of FD summary table")
+```
+
+As shown above, subject 100206 qualifies for further analysis because each of the four sessions (REST1/REST2 × LR/RL) contains at least 600 seconds of valid data.
+
+The script is currently designed to filter based on valid time only, but it can 
+be easily adapted to apply additional constraints such as maximum mean FD thresholds 
+if desired (e.g., mean_fd \< 0.2).
+
+### Appendix B.2: Filter Unrelated Subjects {#appendix-filtering-2}
+
+Building on the previous step, we use the HCP restricted demographic data to 
+exclude related individuals. This step helps ensure the statistical independence of subjects in the group-level priors estimation.
+
+For the `combined` list of valid subjects derived in the previous step, we:
+
+1.   Subset the HCP restricted demographics to include only those subjects with at least 10 minutes remaining after scrubbing.
+
+2.   Filter by `Family_ID` to retain a single individual per family.
+
+Note: This step requires access to the HCP restricted data. If you do not have access, 
+you can skip this step, resulting in some related subjects being included
+in your training data.
+
+```{r warning=FALSE, eval=FALSE}
+# This script filters subjects to retain only unrelated individuals, using Family ID 
+# information from the restricted HCP data.
+# For each encoding (LR, RL, combined), it selects one subject per family from the 
+# FD-valid lists.
+# Outputs (saved in dir_personal due to restricted data):
+# - Unrelated subject lists for LR, RL, and combined encodings (intersection)
+
+source(file.path(src_dir,"2_unrelated_filtering.R"))
+```
+
+### Appendix B.3: Balance Sex Within Age Groups {#appendix-filtering-3}
+
+In the final step of subject selection, we balance sex across age groups to reduce 
+potential demographic bias in priors estimation.
+
+For the `combined` list of valid and unrelated subjects, we:
+
+-   Subset the HCP unrestricted demographics to include only those subjects.
+
+-   Split subjects by age group and examine the sex distribution within each group.
+
+-   If both sexes are present but imbalanced, we randomly remove subjects from the overrepresented group to achieve balance.
+
+Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_combined_subjects_FD` instead of `valid_combined_subjects_unrelated`.
+
+The final list of valid subjects is saved in `dir_results` as:
+
+-   `valid_combined_subjects_balanced.csv`
+
+-   `valid_combined_subjects_balanced.rds` (used in the prior estimation step)
+
+```{r warning=FALSE, eval=FALSE}
+# This script balances sex within each age group for subjects who passed FD and unrelated filtering.
+# For each encoding (LR, RL, combined), it samples subjects to equalize the number
+# of males and females per age group, 
+# unless an age group includes only one gender (in which case no balancing is applied).
+# Uses age and gender information from the unrestricted HCP data.
+# Outputs (saved in dir_personal):
+# - Sex-balanced subject lists for LR, RL, and combined encodings (as .csv and .rds)
+
+source(file.path(src_dir,"3_balance_age_sex.R"))
+```
+
+## Appendix C: Scrubbing and Temporal Truncation {#appendix-scrub}
+
+Given the HCP TR of 0.72 seconds, 10 minutes corresponds to:
+
+```{r warning=FALSE, eval=FALSE}
+T_total <- floor(600 / TR_HCP) # ~833 volumes
+```
+
+To define the volumes to scrub (i.e., exclude beyond 10 minutes), we compute:
+
+```{r warning=FALSE, eval=FALSE}
+T_scrub_start <- T_total + 1
+scrub_BOLD1 <- replicate(length(BOLD_paths1), T_scrub_start:nT_HCP, simplify = FALSE)
+scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
+scrub <- list(scrub_BOLD1, scrub_BOLD2)
+```
+
+Because `drop_first = 15` removes frames before truncation, the final retained time series per scan will be slightly shorter than 10 minutes. Approximately:
+
+```
+(833 - 15) * 0.72 = ~589 seconds (~9.8 minutes)
+```
+
+## Appendix D: Prepare Yeo17 Parcellation for Prior Estimation {#appendix-parcellations}
+
+In this step, we load and preprocess a group-level cortical parcellation to be 
+used as the template to estimate the priors in the next step. Specifically, we 
+use the Yeo 17-network parcellation (`Yeo_17`) and perform the following operations:
+
+-   Simplify the labels by collapsing hemisphere-specific naming and removing 
+subnetwork identifiers, grouping regions by their main network.
+
+-   Create a new `dlabel` object that maps each vertex to its corresponding network.
+
+-   Mask out the medial wall to exclude it from analysis.
+
+The resulting parcellation is saved as `Yeo17_simplified_mwall.rds`.
+
+```{r warning=FALSE, eval=FALSE}
+# This script simplifies the Yeo 17-network parcellation by collapsing region 
+# labels and masking out the medial wall.
+# It creates a cleaned version of the parcellation suitable for downstream analyses.
+# Output:
+# - Saved as RDS file in dir_data: "Yeo17_simplified_mwall.rds"
+
+source(file.path(src_dir,"4_parcellations.R"))
+```
+
+We can visualize the Yeo17 networks and their corresponding labels:
+
+## todo: visualize better in pdf
+
+```{r warning=FALSE}
+# Load libraries
+library(ciftiTools)
+library(rgl)
+rgl::setupKnitr()
+
+# Load the parcellation
+yeo17 <- readRDS(file.path(dir_data, "Yeo17_simplified_mwall.rds"))
+yeo17 <- add_surf(yeo17)
+
+view_xifti_surface(
+  xifti = yeo17,
+  widget = TRUE,
+  title = "Yeo17 Network Parcellation",
+  legend_ncol = 6,
+  legend_fname = "yeo17_legend.png",
+)
+
+```
+
+```{r warning=FALSE}
+# Show legend
+knitr::include_graphics("yeo17_legend.png")
+```
+
+## Appendix E: Example Function Call for Prior Estimation {#appendix-example}
+
+```{r warning=FALSE, eval=FALSE}
+# For detailed parameter descriptions, run: ?estimate_prior
+
+estimate_prior(
+  BOLD = BOLD_paths1,         # REST1 LR scans (list of file paths)
+  BOLD2 = BOLD_paths2,        # REST2 LR scans (same subjects/order as BOLD)
+  template = GICA,            # GICA 15-component parcellation (CIFTI dscalar file path)
+  GSR = TRUE,                 # Apply global signal regression
+  TR = 0.72,                  # Repetition time in seconds
+  hpf = 0.01,                 # High-pass filter cutoff in Hz
+  Q2 = 0,                     # No nuisance IC denoising
+  drop_first = 15,            # Drop first 15 volumes
+  scrub = scrub,              # Timepoints to scrub (list format)
+  verbose = TRUE              # Print progress updates
+)
+```
 
 
 
