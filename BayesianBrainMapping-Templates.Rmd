@@ -3,9 +3,9 @@ title: "Individualized functional topographic mapping with the BayesBrainMap R p
 author: "Nohelia Da Silva, Damon D. Pham, Ellyn Butler, Amanda F. Mejia"
 date: "2025-05-07"
 output:
+  html_document: default
   pdf_document:
     latex_engine: xelatex
-  html_document: default
 header-includes:
   - \usepackage{pifont}
 editor_options:
