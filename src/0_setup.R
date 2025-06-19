@@ -3,8 +3,7 @@
 # install.packages("devtools")
 
 # Download packages
-# install.packages("ciftiTools")         
-# install.packages("templateICAr")       
+# install.packages("ciftiTools")            
 # devtools::install_github("mandymejia/fMRIscrub", "14.0")          
 # install.packages("fMRItools")          
 # install.packages("viridis")
@@ -12,7 +11,6 @@
 
 # Load packages
 library(ciftiTools)      # version 0.17.4
-library(templateICAr)    # version 0.9.1 
 library(fMRIscrub)       # version 0.14.7
 library(fMRItools)       # version 0.5.3
 library(viridis)         # version 0.6.5

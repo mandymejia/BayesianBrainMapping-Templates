@@ -6,7 +6,7 @@ plot_all_GICA_components <- function(nIC) {
 
     for (i in 1:Q) {
         plot_title <- paste0("GICA ", nIC, " - Component ", i)
-        plot(GICA, idx=i, fname=file.path(out_dir, paste0("GICA", nIC, "_", i, ".png")), title=plot_title)
+        plot(GICA, idx=i, fname=file.path(out_dir, paste0("GICA", nIC, "_IC", i, ".png")), title=plot_title)
     }
 }
 

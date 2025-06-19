@@ -20,10 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## 1. Introduction
 
 ```{r setup-env, include=FALSE}
-dir_data <- "data"
-#github_repo_dir <- getwd()
-#src_dir <- file.path(github_repo_dir, "src")
-#source(file.path(src_dir, "0_setup.R"))
+dir_data <- "data_OSF"
 ```
 
 Bayesian brain mapping (BBM) is a technique for producing individualized functional brain
@@ -45,7 +42,7 @@ Once a set of group-level network maps has been chosen, there are two steps to
 performing BBM.  Both are implemented in the 
 `BayesBrainMap` R package.
 
-## TODO: ADD DIAGRAM (show progress)
+** TODO: ADD DIAGRAM **
 
 Here, we perform Step 1 using data from the Human Connectome Project (HCP). Specifically,
 we train CIFTI-format Bayesian brain mapping priors using a variety of ICA and 
@@ -111,9 +108,7 @@ The resulting subject list (`valid_combined_subjects_balanced.rds`) is used thro
 
 ## 4. Step 1: Estimate Priors using `estimate_prior()`
 
-In this step, we estimate group-level statistical priors using the `estimate_prior()` function from the `BayesBrainMap` package.
-
-The helper function `estimate_and_export_prior()` in the file `5_estimate_prior.R` wraps the full procedure, handling subject selection, BOLD file path construction, parcellation selection, and output saving.
+In this step, we estimate group-level statistical priors using the `estimate_prior()` function from the `BayesBrainMap` package. 
 
 ## 4.1 Subject List and Scan Selection
 
@@ -186,7 +181,7 @@ Images are saved in `data/parcellations_plots/Yeo17`.
 
 **TODO: add in appendix visualizations?**
 
-#### 5.1.2 GICA Parcellations (15, 25, 50 ICs)
+#### 5.1.2 GICA Parcellations
 
 \leavevmode
 
@@ -194,17 +189,17 @@ Script: `9_visualization_GICAparcellations.R`
 
 This script loops over all independent components for each parcellation dimensionality (`nIC = 15, 25, 50`) and generates two images per component:
 
--   A cortical surface map (e.g., `GICA_15_IC1.png`)
+-   A cortical surface map (e.g., `GICA15_IC1.png`)
 
--   A subcortical view (e.g., `GICA_15_IC1_sub.png`)
+-   A subcortical view (e.g., `GICA15_IC1_sub.png`)
 
 The resulting images are saved in the following folders:
 
--   `data/parcellations_plots/15IC/`
+-   `data_OSF/outputs/parcellations_plots/GICA15/`
 
--   `data/parcellations_plots/25IC/`
+-   `data_OSF/outputs/parcellations_plots/GICA25`
 
--   `data/parcellations_plots/50IC/`
+-   `data_OSF/outputs/parcellations_plots/GICA50`
 
 Each pair of files corresponds to a specific ICA component and captures its spatial map across brain regions.
 
@@ -218,16 +213,16 @@ Script: `6_visualization_prior.R`
 
 This script loads each estimated prior file from `priors_rds/` and plots both the mean and standard deviation components for all independent components (ICs).
 
-All images are organized into folders by number of ICs and GSR setting, e.g.:
+All images are organized into folders by number of ICs, GSR setting, and corresponding encoding used, e.g.:
 
 ```         
-data/priors_plots/combined/15IC/GSR=F/
+data_OSF/priors_plots/GICA15/combined/GSR/
 
-data/priors_plots/combined/25IC/GSR=T/
+data_OSF/priors_plots/GICA15/combined/noGSR/
 
-data/priors_plots/combined/50IC/GSR=F/
+data_OSF/priors_plots/GICA25/LR/noGSR/
 
-data/priors_plots/combined/Yeo17/GSR=T/
+data_OSF/priors_plots/Yeo17/RL/GSR/
 ```
 
 ### 5.3 Visual Summary of Priors
@@ -779,9 +774,9 @@ view_xifti_surface(
 
 ```
 
-```{r warning=FALSE}
+```{r setup, include=FALSE}
 # Show legend
-knitr::include_graphics("yeo17_legend.png")
+knitr::include_graphics(file.path(dir_data, "outputs", "parcellation_plots", "Yeo17", "yeo17_legend.png"))
 ```
 
 ## Appendix E: Example Function Call for Prior Estimation {#appendix-example}
