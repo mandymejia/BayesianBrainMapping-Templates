@@ -1,12 +1,12 @@
 plot_all_GICA_components <- function(nIC) {
-    GICA <- read_cifti(file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC)))
+    GICA <- read_cifti(file.path(dir_data, "inputs", sprintf("GICA%d.dscalar.nii", nIC)))
     Q <- dim(GICA$data$cortex_left)[2]
 
-    out_dir <- file.path(dir_data, "parcellations_plots", sprintf("%dIC", nIC))
+    out_dir <- file.path(dir_data, "outputs", "parcellations_plots", sprintf("GICA%d", nIC))
 
     for (i in 1:Q) {
-        plot_title <- paste0("GICA ", nIC, " ICs - Component ", i)
-        plot(GICA, idx=i, fname=file.path(out_dir, paste0("GICA_", nIC, "_IC", i, ".png")), title=plot_title)
+        plot_title <- paste0("GICA ", nIC, " - Component ", i)
+        plot(GICA, idx=i, fname=file.path(out_dir, paste0("GICA", nIC, "_", i, ".png")), title=plot_title)
     }
 }
 

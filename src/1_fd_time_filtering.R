@@ -1,3 +1,19 @@
+# Filter Subjects by Sufficient fMRI Scan Duration
+
+# Declare empty lists 
+valid_LR_subjects_FD <- c()
+valid_RL_subjects_FD <- c()
+
+# Initialize table
+fd_summary <- data.frame(
+  subject = character(),
+  session = character(),
+  encoding = character(),
+  mean_fd = numeric(),
+  valid_time_sec = numeric(),
+  stringsAsFactors = FALSE
+)
+
 for (subject in subject_ids) {
     for (encoding in c("LR", "RL")) {
 
@@ -50,9 +66,9 @@ for (subject in subject_ids) {
 # Which subjects have valid LR and RL data?
 valid_combined_subjects_FD <- intersect(valid_LR_subjects_FD, valid_RL_subjects_FD)
 
-# Save intermediate data in Slate
-write.csv(data.frame(subject_id=valid_LR_subjects_FD), file = file.path(dir_results, "valid_LR_subjects_FD.csv"), row.names = FALSE)
-write.csv(data.frame(subject_id=valid_RL_subjects_FD), file = file.path(dir_results, "valid_RL_subjects_FD.csv"), row.names = FALSE)
-write.csv(data.frame(subject_id=valid_combined_subjects_FD), file = file.path(dir_results, "valid_combined_subjects_FD.csv"), row.names = FALSE)
-write.csv(fd_summary, file = file.path(dir_results, "fd_summary.csv"), row.names = TRUE)
+# TODO: WHERE TO SAVE? 
+write.csv(data.frame(subject_id=valid_LR_subjects_FD), file = file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_FD.csv"), row.names = FALSE)
+write.csv(data.frame(subject_id=valid_RL_subjects_FD), file = file.path(dir_data, "outputs", "filtering", "valid_RL_subjects_FD.csv"), row.names = FALSE)
+write.csv(data.frame(subject_id=valid_combined_subjects_FD), file = file.path(dir_data, "outputs", "filtering", "valid_combined_subjects_FD.csv"), row.names = FALSE)
+write.csv(fd_summary, file = file.path(dir_data, "outputs", "filtering", "fd_summary.csv"), row.names = TRUE)
 

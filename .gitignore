@@ -1,7 +1,9 @@
+data_OSF/*
+!data_OSF/README.txt
 
-data/parcellations_plots
-data/priors_plots
-data/priors_rds
+priors/*
+!priors/README.txt
+
 temp_brain_plot.png
 temp_plot.png
 yeo17_legend.png

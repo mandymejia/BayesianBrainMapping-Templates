@@ -1,36 +1,32 @@
+# Plots both the mean and standard deviation components for all priors
+
+
+# todo: modify to include the enconding too? 
+
 prior_files <- list.files(
-    path = file.path(dir_data, "priors_rds"),
+    path = file.path(dir_data, "priors"),
     pattern = "^prior_.*\\.rds$", 
     full.names = TRUE
-    )
+  )
 
 get_prior_title <- function(base_name, i, prior) {
-  if (grepl("yeo17", base_name, ignore.case = TRUE)) {
-    gsr <- if (grepl("GSRT", base_name)) {
-      "GSR = TRUE"
-    } else if (grepl("GSRF", base_name)) {
-      "GSR = FALSE"
-    } else {
-      "GSR = ?"
-    }
+  gsr <- if (grepl("noGSR", base_name)) {
+    "noGSR"
+  } else {
+    "GSR"
+  }
 
+  if (grepl("Yeo17", base_name, ignore.case = TRUE)) {
+    
     label_name <- rownames(prior$GICA_parc_table)[prior$GICA_parc_table$Key == i]
 
-    return(paste0("Yeo 17 Network ", label_name, " (#", i, ") (", gsr, ")"))
+    return(paste0("Yeo 17 Network ", label_name, " (#", i, ") ", gsr))
   }
 
-  ic_match <- regmatches(base_name, regexpr("\\d+ICs", base_name))
-  nIC <- gsub("ICs", "", ic_match)
-  
-  gsr <- if (grepl("GSRT", base_name)) {
-    "GSR = TRUE"
-  } else if (grepl("GSRF", base_name)) {
-    "GSR = FALSE"
-  } else {
-    "GSR = ?"
-  }
+  ic_match <- regmatches(base_name, regexpr("GICA\\d+", base_name))
+  nIC <-  as.numeric(gsub("GICA", "", ic_match))
 
-  paste0("GICA ", nIC, " ICs (", gsr, ") - Component ", i)
+  paste0("GICA ", nIC, gsr, " - Component ", i)
 }
 
 for (file in prior_files) {
@@ -38,18 +34,18 @@ for (file in prior_files) {
     base_name <- tools::file_path_sans_ext(basename(file))
 
     # If Yeo17 template, GICA_parc_table needs to be updated to only reflect the correct number of labels (17)
-    if (grepl("yeo17", base_name)) {
+    if (grepl("Yeo17", base_name)) {
         prior$GICA_parc_table <- subset(prior$GICA_parc_table, prior$GICA_parc_table$Key > 0)
     }
 
     Q <- dim(prior$template$mean)[2]
     # Save 4 images for each IC (cortical sd and mean, and subcortical sd and mean)
     for (i in 1:Q) {
-        if (grepl("yeo17", base_name, ignore.case = TRUE)) {
+        if (grepl("Yeo17", base_name, ignore.case = TRUE)) {
             label_name <- rownames(prior$GICA_parc_table)[prior$GICA_parc_table$Key == i]
-            fname <- file.path(dir_data, paste0(base_name, "_", label_name))
+            fname <- file.path(dir_data, "outputs", "priors_plots", paste0(base_name, "_", label_name))
         } else {
-            fname <- file.path(dir_data, paste0(base_name, "_IC", i))
+            fname <- file.path(dir_data, "outputs", "priors_plots", paste0(base_name, "_IC", i))
         }
 
         plot(

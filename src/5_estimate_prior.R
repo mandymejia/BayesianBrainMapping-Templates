@@ -1,19 +1,18 @@
-# example func call: estimate_and_export_prior("LR", 15, FALSE, dir_personal, dir_data, dir_results, TR_HCP)
+# Estimate Priors using `estimate_prior()`
 
+# Example func call: estimate_and_export_prior("LR", 15, FALSE, dir_data, TR_HCP)
 # encoding is "LR" / "RL" / "combined"
-# nIC is 15 / 25 / 50 or 0 meaning it is yeo17 parcellation
+# nIC is 15 / 25 / 50 or 0 meaning it is going to use the Yeo17 parcellation
 # GSR is TRUE / FALSE
 estimate_and_export_prior <- function(
   encoding,
   nIC,
   GSR,
-  dir_personal,
   dir_data,
-  dir_results,
   TR_HCP
 ) {
     # Get final list of subjects 
-    final_subject_ids <- readRDS(file.path(dir_personal, sprintf("valid_%s_subjects_balanced.rds", "combined")))
+    final_subject_ids <- readRDS(file.path(dir_data, "outputs", "filtering", sprintf("valid_%s_subjects_balanced.rds", encoding)))
 
     # Construct file paths
     if (encoding == "LR" | encoding == "RL") {
@@ -42,11 +41,12 @@ estimate_and_export_prior <- function(
     scrub_BOLD2 <- replicate(length(BOLD_paths2), T_scrub_start:nT_HCP, simplify = FALSE)
     scrub <- list(scrub_BOLD1, scrub_BOLD2)
 
+    # Yeo17 parcellation
     if (nIC == 0) {
-        # yeo17 parcellation
-        GICA <- readRDS(file.path(dir_data, "Yeo17_simplified_mwall.rds"))
 
-        # Include certain ICA (1:17 not 0 or -1 -> medial wall)
+        GICA <- readRDS(file.path(dir_data, "outputs", "Yeo17_simplified_mwall.rds"))
+
+        # Include certain ICs (1:17 not 0 or -1 -> medial wall)
         valid_keys <- GICA$meta$cifti$labels[[1]]$Key
         inds <- valid_keys[valid_keys > 0]
 
@@ -66,13 +66,13 @@ estimate_and_export_prior <- function(
                 scrub = scrub
                 )
         
-
         # Save file
-        saveRDS(prior, file.path(dir_results, sprintf("prior_%s_yeo17_GSR%s.rds", encoding, ifelse(GSR, "T", "F"))))
+        saveRDS(prior, file.path(dir_project, "priors", sprintf("prior_%s_Yeo17_%sGSR.rds", encoding, ifelse(GSR, "", "no"))))
 
+    # GICA
     } else {
-        # HCP IC
-        GICA <- file.path(dir_data, sprintf("GICA_%dIC.dscalar.nii", nIC))
+
+        GICA <- file.path(dir_data, "inputs", sprintf("GICA%d.dscalar.nii", nIC))
 
         prior <- estimate_prior(
                 BOLD = BOLD_paths1,
@@ -89,7 +89,7 @@ estimate_and_export_prior <- function(
                 )
 
         # Save file
-        saveRDS(prior, file.path(dir_results, sprintf("prior_%s_%dICs_GSR%s.rds", encoding, nIC, ifelse(GSR, "T", "F"))))
+        saveRDS(prior, file.path(dir_project, "priors", sprintf("prior_%s_GICA%d_%sGSR.rds", encoding, nIC, ifelse(GSR, "", "no"))))
 
     }
 

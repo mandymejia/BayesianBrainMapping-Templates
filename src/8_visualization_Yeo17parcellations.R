@@ -1,5 +1,5 @@
 # Yeo 17 visualization
-parcellation_all <- readRDS(file.path(dir_data, "Yeo17_simplified_mwall.rds"))
+parcellation_all <- readRDS(file.path(dir_data, "outputs", "Yeo17_simplified_mwall.rds"))
 parcellation_num <- 17
 
 for (parc in parcellation_num) {
@@ -21,7 +21,7 @@ for (parc in parcellation_num) {
   # Plot
   plot(
     copy_parcellation, 
-    fname = file.path(dir_data, "parcellations_plots", "Yeo17", paste0("Yeo17_", label_name, ".png")),
+    fname = file.path(dir_data, "outputs", "parcellations_plots", "Yeo17", paste0("Yeo17_", label_name, ".png")),
     title = plot_title
     )
 }
