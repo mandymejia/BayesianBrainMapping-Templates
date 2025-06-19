@@ -3,9 +3,10 @@ title: "Individualized functional topographic mapping with the BayesBrainMap R p
 author: "Nohelia Da Silva, Damon D. Pham, Ellyn Butler, Amanda F. Mejia"
 date: "2025-05-07"
 output:
-  html_document: default
   pdf_document:
     latex_engine: xelatex
+  html_document: default
+bibliography: references.bib
 header-includes:
   - \usepackage{pifont}
 editor_options:
@@ -27,7 +28,7 @@ Bayesian brain mapping (BBM) is a technique for producing individualized functio
 topographic maps from existing group-level network maps. Group-level network maps 
 are commonly group ICA maps or group average parcellations, but other types of 
 networks maps such as non-negative matrix factorization and PROFUMO can be used. 
-In the case of ICA, BBM is known as template ICA (CITE Mejia et al 2020).  BBM is
+In the case of ICA, BBM is known as template ICA [@mejia2020bayesian].  BBM is
 a hierarchical source separation model, with priors on the spatial topography and, 
 optionally, on the functional connectivity.  The priors are estimated a-priori,
 so the model can be fit to individual-level fMRI data. The noise-reduction properties
@@ -798,6 +799,7 @@ estimate_prior(
 )
 ```
 
+## References
 
 
 

@@ -1,5 +1,7 @@
 # Estimate Priors using `estimate_prior()`
 
+# todo: modify path of saving!! 
+
 # Example func call: estimate_and_export_prior("LR", 15, FALSE, dir_data, TR_HCP)
 # encoding is "LR" / "RL" / "combined"
 # nIC is 15 / 25 / 50 or 0 meaning it is going to use the Yeo17 parcellation

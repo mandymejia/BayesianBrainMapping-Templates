@@ -66,6 +66,8 @@ for (subject in subject_ids) {
 # Which subjects have valid LR and RL data?
 valid_combined_subjects_FD <- intersect(valid_LR_subjects_FD, valid_RL_subjects_FD)
 
+dir.create(file.path(dir_data, "outputs", "filtering"), recursive = TRUE, showWarnings = FALSE)
+
 write.csv(data.frame(subject_id=valid_LR_subjects_FD), file = file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_FD.csv"), row.names = FALSE)
 write.csv(data.frame(subject_id=valid_RL_subjects_FD), file = file.path(dir_data, "outputs", "filtering", "valid_RL_subjects_FD.csv"), row.names = FALSE)
 write.csv(data.frame(subject_id=valid_combined_subjects_FD), file = file.path(dir_data, "outputs", "filtering", "valid_combined_subjects_FD.csv"), row.names = FALSE)

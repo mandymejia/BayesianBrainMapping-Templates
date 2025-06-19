@@ -3,6 +3,7 @@
 # install.packages("devtools")
 
 # Download packages
+# install.packages("gsignal")
 # install.packages("ciftiTools")            
 # devtools::install_github("mandymejia/fMRIscrub", "14.0")          
 # install.packages("fMRItools")          
@@ -10,6 +11,7 @@
 # install.packages("BayesBrainMap")
 
 # Load packages
+library(gsignal)         # version 0.3.7
 library(ciftiTools)      # version 0.17.4
 library(fMRIscrub)       # version 0.14.7
 library(fMRItools)       # version 0.5.3
