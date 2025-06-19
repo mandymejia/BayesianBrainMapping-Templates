@@ -371,13 +371,21 @@ knitr::include_graphics(file.path(dir_data,
 
 Script: `7_visualization_FC.R`
 
-This step visualizes the Functional Connectivity (FC) prior for each ICA model using both the Cholesky and Inverse-Wishart parameterizations. For each group-level prior in `priors/`, we compute and plot:
+This step visualizes the Functional Connectivity (FC) prior for each prior using both the Cholesky and Inverse-Wishart parameterizations. For each group-level prior in `priors/`, we compute and plot:
 
 - Mean FC matrix (off-diagonal values only)
 
 - Standard deviation of FC estimates (from the variance matrix)
 
-For each prior, the following outputs are saved in the `data_OSF/outputs/priors_plots/GICA15/combined/FC` folder: *todo : all 15,25,50, yeo and combined lr and rl"*
+For each prior, the following outputs are saved in the corresponding folder under:
+
+`data_OSF/outputs/priors_plots/<parcellation>/<encoding>/FC/`
+
+Where:
+
+- <parcellation> = GICA15, GICA25, GICA50, or Yeo17
+
+- <encoding> = LR, RL, or combined
 
 #### PDF files (2 per prior)
 
@@ -403,24 +411,26 @@ Each PDF includes:
 
 These visualizations allow for a direct comparison of spatial FC structure and uncertainty across priors and estimation methods.
 
+The figures below show the mean and standard deviation of FC priors for each parcellation (GICA15, GICA25, GICA50, Yeo17) using Cholesky and Inverse-Wishart methods. Only combined priors are shown.
+
 #### 5.4.1 GICA15
 
 \leavevmode
 
 ```{r fig.show='hold', out.width='48%', echo=FALSE}
 knitr::include_graphics(file.path(dir_data, "outputs",
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_15ICs_GSRT_FC_Cholesky_mean.png"))
+                                  "priors_plots", "GICA15", "combined", "FC",
+                                  "prior_combined_GICA15_GSR_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, "outputs",
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_15ICs_GSRT_FC_InverseWishart_mean.png"))
+                                  "priors_plots", "GICA15", "combined", "FC",
+                                  "prior_combined_GICA15_GSR_FC_InverseWishart_mean.png"))
 
 knitr::include_graphics(file.path(dir_data,"outputs",
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_15ICs_GSRT_FC_Cholesky_sd.png"))
+                                  "priors_plots", "GICA15", "combined", "FC",
+                                  "prior_combined_GICA15_GSR_FC_Cholesky_sd.png"))
 knitr::include_graphics(file.path(dir_data,"outputs",
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_15ICs_GSRT_FC_InverseWishart_sd.png"))
+                                  "priors_plots", "GICA15", "combined", "FC",
+                                  "prior_combined_GICA15_GSR_FC_InverseWishart_sd.png"))
 ```
 
 #### 5.4.2 25 ICs
@@ -429,18 +439,18 @@ knitr::include_graphics(file.path(dir_data,"outputs",
 
 ```{r fig.show='hold', out.width='48%', echo=FALSE}
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_25ICs_GSRT_FC_Cholesky_mean.png"))
+                                  "priors_plots", "GICA25", "combined", "FC",
+                                  "prior_combined_GICA25_GSR_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_25ICs_GSRT_FC_InverseWishart_mean.png"))
+                                  "priors_plots", "GICA25", "combined", "FC",
+                                  "prior_combined_GICA25_GSR_FC_InverseWishart_mean.png"))
 
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_25ICs_GSRT_FC_Cholesky_sd.png"))
+                                  "priors_plots", "GICA25", "combined", "FC",
+                                  "prior_combined_GICA25_GSR_FC_Cholesky_sd.png"))
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_25ICs_GSRT_FC_InverseWishart_sd.png"))
+                                  "priors_plots", "GICA25", "combined", "FC",
+                                  "prior_combined_GICA25_GSR_FC_InverseWishart_sd.png"))
 ```
 
 #### 5.4.3 50 ICs
@@ -449,18 +459,18 @@ knitr::include_graphics(file.path(dir_data,
 
 ```{r fig.show='hold', out.width='48%', echo=FALSE}
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_50ICs_GSRT_FC_Cholesky_mean.png"))
+                                  "priors_plots", "GICA50", "combined", "FC",
+                                  "prior_combined_GICA50_GSR_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_50ICs_GSRT_FC_InverseWishart_mean.png"))
+                                  "priors_plots", "GICA50", "combined", "FC",
+                                  "prior_combined_GICA50_GSR_FC_InverseWishart_mean.png"))
 
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_50ICs_GSRT_FC_Cholesky_sd.png"))
+                                  "priors_plots", "GICA50", "combined", "FC",
+                                  "prior_combined_GICA50_GSR_FC_Cholesky_sd.png"))
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_50ICs_GSRT_FC_InverseWishart_sd.png"))
+                                  "priors_plots", "GICA50", "combined", "FC",
+                                  "prior_combined_GICA50_GSR_FC_InverseWishart_sd.png"))
 ```
 
 #### 5.4.4 Yeo17
@@ -469,18 +479,18 @@ knitr::include_graphics(file.path(dir_data,
 
 ```{r fig.show='hold', out.width='48%', echo=FALSE}
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_yeo17_GSRT_FC_Cholesky_mean.png"))
+                                  "priors_plots", "Yeo17", "combined", "FC",
+                                  "prior_combined_yeo17_GSR_FC_Cholesky_mean.png"))
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_yeo17_GSRT_FC_InverseWishart_mean.png"))
+                                  "priors_plots", "Yeo17", "combined", "FC",
+                                  "prior_combined_Yeo17_GSR_FC_InverseWishart_mean.png"))
 
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_yeo17_GSRT_FC_Cholesky_sd.png"))
+                                  "priors_plots", "Yeo17", "combined", "FC",
+                                  "prior_combined_Yeo17_GSR_FC_Cholesky_sd.png"))
 knitr::include_graphics(file.path(dir_data, 
-                                  "priors_plots", "combined", "FC", 
-                                  "template_combined_yeo17_GSRT_FC_InverseWishart_sd.png"))
+                                  "priors_plots", "Yeo17", "combined", "FC",
+                                  "prior_combined_Yeo17_GSR_FC_InverseWishart_sd.png"))
 ```
 
 ## 6. Using Priors for Individual-Level Brain Mapping
@@ -551,17 +561,19 @@ git clone https://github.com/mandymejia/BayesianBrainMapping-Templates.git
 cd BayesianBrainMapping-Templates
 ```
 
-Next, download the required `data/` folder from the following OSF link:
+Next, download the required `data_OSF/` and `priors` folders from the following OSF link:
 
 [`https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef`](https://osf.io/n3wk5/?view_only=0d95b31090a245eb9ef51fe262be60ef)
 
-Once downloaded, unzip the folder and place the `data/` directory inside your cloned GitHub repository, so the folder structure looks like this:
+Once downloaded, unzip the folder and place in the folder in the GitHub directory with the same corresponding name. The folder structure should look like this:
 
 <pre>
 BayesianBrainMapping-Templates/
-├── data/
-│   ├── priors_rds/
-│   └── parcellations_plots/
+├── data_OSF/
+│   ├── inputs/
+│   └── outputs/
+├── priors/
+│   ├── GICA15/
 │   └── ...
 ├── src/
 │   ├── 0_setup.R
@@ -577,13 +589,11 @@ This section initializes the environment by loading required packages, setting a
 necessary packages, ensure you have an installation of Connectome Workbench, and update 
 the following variables to match your local or cluster environment:
 
--   `dir_project` (path to the main project folder that contains all code and data (i.e., your local clone of BayesianBrainMapping-Templates))
+-   `dir_project` (path to the GitHub folder)
 
--   `dir_data` (path to the `data/` folder inside the project directory, downloaded from OSF in the previous step)
+-   `dir_HCP` (path to the HCP data)
 
--   `dir_results` (path to the folder where all output files are saved)
-
--   `dir_personal` (path to your personal user directory on the cluster)
+-   `HCP_unrestricted_fname` (path to the unrestricted HCP CSV if you have access to it)
 
 -   `HCP_restricted_fname` (path to the restricted HCP CSV if you have access to it)
 
@@ -608,8 +618,7 @@ file available in the HCP data for each subject, encoding and session.
 
 A volume is considered valid if it passes an FD threshold, and a subject is retained only if both sessions in both encodings have at least 10 minutes (600 seconds) of valid data.
 
-The final subject list includes only those who passed the filtering criteria in both LR and RL encodings and in both visits (REST1 and REST2). This list is referred to as the `combined` 
-list and is the one used throughout this project.
+The final subject lists include those who passed the filtering criteria separately for each encoding: `LR`, `RL`, and their intersection, referred to as the`combined` list. The combined list includes only subjects who passed all criteria for both LR and RL encodings across both visits (REST1 and REST2), and is the one used throughout this project.
 
 ```{r warning=FALSE, eval=FALSE}
 # This script filters subjects based on motion using framewise displacement (FD)
@@ -647,7 +656,7 @@ During this step, an FD summary table is generated with the following columns:
 
 ```{r warning=FALSE}
 # Read FD summary
-fd_summary <- read.csv(file.path(dir_data, "fd_summary.csv"))
+fd_summary <- read.csv(file.path(dir_data, "outputs", "filtering", "fd_summary.csv"))
 
 # Display the first 4 rows
 knitr::kable(head(fd_summary, 4), caption = "First rows of FD summary table")
@@ -664,7 +673,7 @@ if desired (e.g., mean_fd \< 0.2).
 Building on the previous step, we use the HCP restricted demographic data to 
 exclude related individuals. This step helps ensure the statistical independence of subjects in the group-level priors estimation.
 
-For the `combined` list of valid subjects derived in the previous step, we:
+For the `LR`, `RL`, and `combined` lists of valid subjects derived in the previous step, we:
 
 1.   Subset the HCP restricted demographics to include only those subjects with at least 10 minutes remaining after scrubbing.
 
@@ -690,7 +699,7 @@ source(file.path(src_dir,"2_unrelated_filtering.R"))
 In the final step of subject selection, we balance sex across age groups to reduce 
 potential demographic bias in priors estimation.
 
-For the `combined` list of valid and unrelated subjects, we:
+For the `LR`, `RL`, and `combined` lists of valid subjects derived in the previous step, we:
 
 -   Subset the HCP unrestricted demographics to include only those subjects.
 
@@ -698,13 +707,13 @@ For the `combined` list of valid and unrelated subjects, we:
 
 -   If both sexes are present but imbalanced, we randomly remove subjects from the overrepresented group to achieve balance.
 
-Note: If you are not applying the unrelated subject filtering step (3.2), you can modify the code to subset based on `valid_combined_subjects_FD` instead of `valid_combined_subjects_unrelated`.
+Note: If the unrelated subject filtering step is skipped (e.g., due to lack of restricted data access), the code automatically falls back to using   `valid_<encoding>_subjects_FD` instead of `valid_<encoding>_subjects_unrelated`. 
 
 The final list of valid subjects is saved in `dir_results` as:
 
--   `valid_combined_subjects_balanced.csv`
+-   `valid_<encoding>_subjects_balanced.csv`
 
--   `valid_combined_subjects_balanced.rds` (used in the prior estimation step)
+-   `valid_<encoding>_subjects_balanced.rds` (used in the prior estimation step)
 
 ```{r warning=FALSE, eval=FALSE}
 # This script balances sex within each age group for subjects who passed FD and unrelated filtering.
@@ -768,7 +777,7 @@ source(file.path(src_dir,"4_parcellations.R"))
 
 We can visualize the Yeo17 networks and their corresponding labels:
 
-## todo: visualize better in pdf
+** todo: visualize better in pdf **
 
 ```{r warning=FALSE, eval=FALSE}
 # Load libraries
