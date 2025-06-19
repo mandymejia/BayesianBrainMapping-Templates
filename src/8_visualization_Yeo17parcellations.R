@@ -2,6 +2,9 @@
 parcellation_all <- readRDS(file.path(dir_data, "outputs", "Yeo17_simplified_mwall.rds"))
 parcellation_num <- 17
 
+out_dir <- file.path(dir_data, "outputs", "parcellations_plots", "Yeo17")
+if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+
 for (parc in parcellation_num) {
   # Copy original parcellation
   copy_parcellation <- parcellation_all
@@ -21,7 +24,7 @@ for (parc in parcellation_num) {
   # Plot
   plot(
     copy_parcellation, 
-    fname = file.path(dir_data, "outputs", "parcellations_plots", "Yeo17", paste0("Yeo17_", label_name, ".png")),
+    fname = file.path(out_dir, paste0("Yeo17_", label_name, ".png")),
     title = plot_title
     )
 }

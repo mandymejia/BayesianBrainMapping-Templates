@@ -35,7 +35,7 @@ estimate_and_export_prior <- function(
 
     parcellation <- if (nIC == 0) "Yeo17" else sprintf("GICA%d", nIC)
     gsr_label <- ifelse(GSR, "GSR", "noGSR")
-    save_dir <- file.path(dir_project, "priors", encoding, parcellation)
+    save_dir <- file.path(dir_project, "priors", parcellation)
     if (!dir.exists(save_dir)) dir.create(save_dir, recursive = TRUE)
 
     cat(sprintf("Estimating prior for encoding: %s , parcellation: %s , %s\n",encoding, parcellation, gsr_label))

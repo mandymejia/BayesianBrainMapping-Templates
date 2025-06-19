@@ -3,6 +3,7 @@ plot_all_GICA_components <- function(nIC) {
     Q <- dim(GICA$data$cortex_left)[2]
 
     out_dir <- file.path(dir_data, "outputs", "parcellations_plots", sprintf("GICA%d", nIC))
+    if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
     for (i in 1:Q) {
         plot_title <- paste0("GICA ", nIC, " - Component ", i)
