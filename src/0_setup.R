@@ -26,8 +26,13 @@ dir_project <- "~/Documents/GitHub/BayesianBrainMapping-Templates" # Path to Git
 
 dir_data <- file.path(dir_project, "data_OSF") # Path to data folder
 
-HCP_unrestricted_fname <- file.path(dir_data, "inputs", "unrestricted_HCP_demographics.csv")
-HCP_restricted_fname <- file.path(dir_data, "inputs", "restricted_HCP.csv")
+#
+# delete later
+HCP_unrestricted_fname <- file.path("/N/project/brain_prediction", "unrestricted_HCP_demographics.csv")
+HCP_restricted_fname <- file.path("/N/project/brain_prediction", "restricted_HCP.csv")
+#
+# HCP_unrestricted_fname <- file.path(dir_data, "inputs", "unrestricted_HCP_demographics.csv")
+# HCP_restricted_fname <- file.path(dir_data, "inputs", "restricted_HCP.csv")
 
 # Read CSV
 HCP_unrestricted <- read.csv(HCP_unrestricted_fname)
