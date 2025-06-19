@@ -5,6 +5,10 @@ if (!file.exists(HCP_restricted_fname)) {
 } else {
   HCP_restricted <- read.csv(HCP_restricted_fname)
 
+  valid_LR_subjects_FD <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_FD.csv"))$subject_id
+  valid_RL_subjects_FD <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_RL_subjects_FD.csv"))$subject_id
+  valid_combined_subjects_FD <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_combined_subjects_FD.csv"))$subject_id
+
   for (encoding in c("LR", "RL", "combined")) {
     # From restricted data get only the rows that correspond to the valid subject IDs after FD correction
     filtered_restricted <- HCP_restricted[HCP_restricted$Subject %in% get(sprintf("valid_%s_subjects_FD", encoding)), ]
@@ -29,5 +33,4 @@ if (!file.exists(HCP_restricted_fname)) {
   write.csv(data.frame(subject_id=valid_LR_subjects_unrelated), file = file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_unrelated.csv"), row.names = FALSE)
   write.csv(data.frame(subject_id=valid_RL_subjects_unrelated), file = file.path(dir_data, "outputs", "filtering", "valid_RL_subjects_unrelated.csv"), row.names = FALSE)
   write.csv(data.frame(subject_id=valid_combined_subjects_unrelated), file = file.path(dir_data, "outputs", "filtering", "valid_combined_subjects_unrelated.csv"), row.names = FALSE)
-
 }

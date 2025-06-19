@@ -1,11 +1,23 @@
 # Balance sex within age groups
 
+# Load FD-filtered lists
+valid_LR_subjects_FD <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_FD.csv"))$subject_id
+valid_RL_subjects_FD <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_RL_subjects_FD.csv"))$subject_id
+valid_combined_subjects_FD <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_combined_subjects_FD.csv"))$subject_id
+
+# Load unrelated-filtered lists if they exist
+if (file.exists(file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_unrelated.csv"))) {
+  valid_LR_subjects_unrelated <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_unrelated.csv"))$subject_id
+  valid_RL_subjects_unrelated <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_RL_subjects_unrelated.csv"))$subject_id
+  valid_combined_subjects_unrelated <- read.csv(file.path(dir_data, "outputs", "filtering", "valid_combined_subjects_unrelated.csv"))$subject_id
+}
+
 for (encoding in c("LR", "RL", "combined")) {
     
     if (file.exists(file.path(dir_data, "outputs", "filtering", "valid_LR_subjects_unrelated.csv"))) {
         filtered_subjects <- HCP_unrestricted[HCP_unrestricted$Subject %in% get(sprintf("valid_%s_subjects_unrelated", encoding)), ]
     } else {
-        # If skipping step 2 (no access to restricted data / not filtering by unrelated):
+        # If skipping step 2 (no access to restricted data / not filtering by unrelated)
         filtered_subjects <- HCP_unrestricted[HCP_unrestricted$Subject %in% get(sprintf("valid_%s_subjects_FD", encoding)), ]
     }
 

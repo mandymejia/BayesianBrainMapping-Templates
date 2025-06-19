@@ -113,13 +113,27 @@ In this step, we estimate group-level statistical priors using the `estimate_pri
 
 ## 4.1 Subject List and Scan Selection
 
-The encoding parameter is set to `combined` to use the final list of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`), which includes individuals who passed motion filtering in both LR and RL directions in both sessions, were unrelated, and were sex-balanced within age groups.
+The encoding parameter is set to `combined`, `LR`, and `RL` to use the final lists of subjects saved in Step 3.3 (`valid_combined_subjects_balanced.rds`, `valid__LR_subjects_balanced.rds`, and `valid_RL_subjects_balanced.rds`). The `combined` list includes individuals who passed motion filtering in both LR and RL directions for both sessions, were unrelated, and were sex-balanced within age groups. The `LR` and `RL` lists include subjects who met these criteria independently for each direction.
 
-For each subject, we use REST1 sessions from both phase-enconding directions:
+If encoding is `combined`, we include only REST1 sessions from both phase-encoding directions:
 
--   `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+- `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
--   `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+- `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+If encoding is `LR` or `RL`, we use both REST1 and REST2 sessions from the specified direction:
+
+For `LR`:
+
+- `rfMRI_REST1_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+- `rfMRI_REST2_LR_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+For `RL`:
+
+- `rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
+
+- `rfMRI_REST2_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii`
 
 ## 4.2 Temporal Preprocessing Parameters
 

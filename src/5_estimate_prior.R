@@ -1,7 +1,5 @@
 # Estimate Priors using `estimate_prior()`
 
-# todo: modify path of saving!! 
-
 # Example func call: estimate_and_export_prior("LR", 15, FALSE, dir_data, TR_HCP)
 # encoding is "LR" / "RL" / "combined"
 # nIC is 15 / 25 / 50 or 0 meaning it is going to use the Yeo17 parcellation
@@ -35,7 +33,12 @@ estimate_and_export_prior <- function(
                                 sprintf("MNINonLinear/Results/rfMRI_REST1_RL/rfMRI_REST1_RL_Atlas_MSMAll_hp2000_clean.dtseries.nii"))
     }
 
-    cat("Estimating prior for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
+    parcellation <- if (nIC == 0) "Yeo17" else sprintf("GICA%d", nIC)
+    gsr_label <- ifelse(GSR, "GSR", "noGSR")
+    save_dir <- file.path(dir_project, "priors", encoding, parcellation)
+    if (!dir.exists(save_dir)) dir.create(save_dir, recursive = TRUE)
+
+    cat(sprintf("Estimating prior for encoding: %s , parcellation: %s , %s\n",encoding, parcellation, gsr_label))
 
     T_total <- floor(600 / TR_HCP)
     T_scrub_start <- T_total + 1
@@ -69,7 +72,7 @@ estimate_and_export_prior <- function(
                 )
         
         # Save file
-        saveRDS(prior, file.path(dir_project, "priors", sprintf("prior_%s_Yeo17_%sGSR.rds", encoding, ifelse(GSR, "", "no"))))
+        saveRDS(prior, file.path(save_dir, sprintf("prior_%s_%s_%s.rds", encoding, parcellation, gsr_label)))
 
     # GICA
     } else {
@@ -91,9 +94,8 @@ estimate_and_export_prior <- function(
                 )
 
         # Save file
-        saveRDS(prior, file.path(dir_project, "priors", sprintf("prior_%s_GICA%d_%sGSR.rds", encoding, nIC, ifelse(GSR, "", "no"))))
-
+        saveRDS(prior, file.path(save_dir, sprintf("prior_%s_%s_%s.rds", encoding, parcellation, gsr_label)))
     }
 
-    cat("Saved prior for", encoding, "with", nIC, "ICs", "and GSR =", GSR, "\n")
+    cat(sprintf("Saved prior for encoding: %s , parcellation: %s , %s\n",encoding, parcellation, gsr_label))
 }
