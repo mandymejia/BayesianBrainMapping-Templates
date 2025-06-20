@@ -1,9 +1,9 @@
 # Setup
 
 # install.packages("devtools")
-
-# Download packages
 # install.packages("gsignal")
+# install.packages("ggcorrplot")
+
 # install.packages("ciftiTools")            
 # devtools::install_github("mandymejia/fMRIscrub", "14.0")          
 # install.packages("fMRItools")          
@@ -11,6 +11,7 @@
 # install.packages("BayesBrainMap")
 
 # Load packages
+library(ggcorrplot)      # version 0.1.4.1
 library(gsignal)         # version 0.3.7
 library(ciftiTools)      # version 0.17.4
 library(fMRIscrub)       # version 0.14.7
