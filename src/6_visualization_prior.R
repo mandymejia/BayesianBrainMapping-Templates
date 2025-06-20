@@ -48,12 +48,25 @@ for (file in prior_files) {
       dir.create(output_dir, recursive = TRUE)
     }
     title <- get_prior_title(base_name, i, prior, encoding, gsr_status)
-  
+
+    # Plot mean
     plot(
       prior,
+      stat = "mean",
       fname = fname,
       idx = i,
-      title = title
+      title = title,
+      zlim = c(-0.1, 0.1)
+    )
+
+    # Plot standard deviation
+    plot(
+      prior,
+      stat = "sd",
+      fname = fname,
+      idx = i,
+      title = title,
+      zlim = c(0, 0.1)
     )
   }
 }
