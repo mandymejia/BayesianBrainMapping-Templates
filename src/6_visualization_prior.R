@@ -1,8 +1,6 @@
 # Plots both the mean and standard deviation components for all priors
 
-# todo: change to priors after all plotting 
-
-prior_files <- list.files(file.path(dir_project, "priors_to_plot"), recursive = TRUE, full.names = TRUE)
+prior_files <- list.files(file.path(dir_project, "priors"), recursive = TRUE, full.names = TRUE)
 
 get_prior_title <- function(base_name, i, prior, encoding, gsr_status) {
 
@@ -30,14 +28,14 @@ for (file in prior_files) {
 
   # If Yeo17 template, GICA_parc_table needs to be updated to only reflect the correct number of labels (17)
   if (grepl("Yeo17", base_name)) {
-    prior$GICA_parc_table <- subset(prior$GICA_parc_table, prior$GICA_parc_table$Key > 0)
+    prior$template_parc_table <- subset(prior$template_parc_table, prior$template_parc_table$Key > 0)
   }
 
   Q <- dim(prior$prior$mean)[2]
   # Save 4 images for each IC (cortical sd and mean, and subcortical sd and mean)
   for (i in 1:Q) {
     if (grepl("Yeo17", base_name, ignore.case = TRUE)) {
-      label_name <- rownames(prior$GICA_parc_table)[prior$GICA_parc_table$Key == i]
+      label_name <- rownames(prior$template_parc_table)[prior$template_parc_table$Key == i]  
       fname <- file.path(dir_data, "outputs", "priors_plots", parcellation, encoding, gsr_status, paste0(base_name, "_", label_name))
     } else {
       fname <- file.path(dir_data, "outputs", "priors_plots",  parcellation, encoding, gsr_status, paste0(base_name, "_IC", i))
