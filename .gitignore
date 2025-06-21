@@ -4,8 +4,6 @@ data_OSF/*
 priors/*
 !priors/README.txt
 
-priors_to_plot
-
 temp_brain_plot.png
 temp_plot.png
 yeo17_legend.png
