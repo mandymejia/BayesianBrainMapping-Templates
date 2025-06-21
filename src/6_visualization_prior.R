@@ -41,10 +41,11 @@ for (file in prior_files) {
       fname <- file.path(dir_data, "outputs", "priors_plots",  parcellation, encoding, gsr_status, paste0(base_name, "_IC", i))
     }
 
-    output_dir <- dirname(fname)
-    if (!dir.exists(output_dir)) {
-      dir.create(output_dir, recursive = TRUE)
+    outdir <- dirname(fname)
+    if (!dir.exists(outdir)) {
+      dir.create(outdir, recursive = TRUE)
     }
+
     title <- get_prior_title(base_name, i, prior, encoding, gsr_status)
 
     # Plot mean
